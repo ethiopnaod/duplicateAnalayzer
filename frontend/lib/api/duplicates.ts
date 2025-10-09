@@ -77,32 +77,37 @@ export async function fetchDuplicates(
     // Transform backend response to match frontend expectations
     if (response.data.success && response.data.data) {
       const backendData = response.data.data;
-      return {
-        entities: backendData.duplicates.map((duplicate: any) => ({
-          id: duplicate.id,
-          name: duplicate.name,
-          phone: duplicate.phoneNumbers?.[0] || '',
-          email: duplicate.emailAddresses?.[0] || '',
-          entityType: duplicate.entityType,
-          createdAt: duplicate.createdAt,
-          duplicateCount: parseInt(duplicate.duplicateCount) || 0,
-          duplicateIds: duplicate.duplicateIds || [],
-          matchType: duplicate.matchType || 'name',
-          confidence: duplicate.confidence || 0.5,
-          phoneNumbers: duplicate.phoneNumbers || [],
-          emailAddresses: duplicate.emailAddresses || [],
-          entities: duplicate.entities || []
-        })),
+
+      const transformedEntities = backendData.duplicates.map((duplicate: any) => ({
+        id: duplicate.id,
+        name: duplicate.name,
+        phone: duplicate.phoneNumbers?.[0] || '',
+        email: duplicate.emailAddresses?.[0] || '',
+        entityType: duplicate.entityType,
+        createdAt: duplicate.createdAt,
+        duplicateCount: parseInt(duplicate.duplicateCount) || 0,
+        duplicateIds: duplicate.duplicateIds || [],
+        matchType: duplicate.matchType || 'name',
+        confidence: duplicate.confidence || 0.5,
+        phoneNumbers: duplicate.phoneNumbers || [],
+        emailAddresses: duplicate.emailAddresses || [],
+        entities: duplicate.entities || []
+      }));
+
+      const result = {
+        entities: transformedEntities,
         totalCount: parseInt(backendData.pagination?.totalGroups) || 0,
         page: backendData.pagination?.page || 1,
         pageSize: backendData.pagination?.pageSize || 25,
         hasNextPage: backendData.pagination?.hasMore || false,
+        success: true
       };
+
+      return result;
     }
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching duplicates from backend:', error);
     throw new Error('Failed to fetch duplicates from backend');
   }
 }
@@ -179,7 +184,7 @@ export async function autoMergeDuplicate(
     // This would need to be implemented properly in the backend
     const response = await axiosClient.post('/duplicates/auto-merge', {
       duplicateGroups: [{
-        groupId: `auto_merge_${Date.now()}`,
+        groupId: `auto_merge_${Math.random().toString(36).substr(2, 9)}`,
         entityIds: [parseInt(entityName)], // Assuming entityName is actually an ID
         keepEntityId: parseInt(entityName),
       }]

@@ -23,8 +23,9 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/custom/PageHeader";
 import CompactDuplicatesTable from "@/components/custom/CompactDuplicatesTable";
 import ErrorBoundary from "@/components/custom/ErrorBoundary";
-import { useDuplicates } from "@/hooks/useDuplicates";
+import { useHydrationSafeDuplicates } from "@/hooks/useHydrationSafeDuplicates";
 import { testBackendConnection } from "@/lib/backend-test";
+import dynamic from "next/dynamic";
 
 const OPTIONS = [
   {
@@ -39,7 +40,8 @@ const OPTIONS = [
   },
 ];
 
-export default function Dashboard() {
+// Client-side only component to prevent SSR hydration issues
+const DashboardClient = () => {
   const entityType = useEntityType();
   const setEntityType = useSetEntityType();
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,7 +56,7 @@ export default function Dashboard() {
     results?: any;
   }>({ isRunning: false, progress: 0, message: '' });
 
-  // Use the optimized duplicates hook with real data
+  // Use the hydration-safe duplicates hook with real data
   const {
     entities,
     totalCount,
@@ -69,14 +71,24 @@ export default function Dashboard() {
     bulkMerge,
     bulkDelete,
     autoMerge,
-  } = useDuplicates({
+  } = useHydrationSafeDuplicates({
     entityType,
-    pageSize: 25,
+    pageSize: 50,
     searchTerm,
     onBackendStatusChange: (status, message) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🏥 Backend: ${status} - ${message}`);
+      }
       setBackendStatus({ status, message });
     },
   });
+
+  // Minimal logging for data changes (development only)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📊 Dashboard: ${entities.length}/${totalCount} entities, page ${currentPage}/${totalPages}`);
+    }
+  }, [entities.length, totalCount, currentPage, totalPages]);
 
   // Derived states
   const typeLabel = entityType === "1" ? "Organizations" : "People";
@@ -88,7 +100,7 @@ export default function Dashboard() {
     setSearch(value);
   }, [setSearch]);
 
-  // Test backend connection on mount
+  // Test backend connection on mount (client-side only)
   useEffect(() => {
     const checkBackend = async () => {
       try {
@@ -334,4 +346,36 @@ export default function Dashboard() {
       </main>
     </ErrorBoundary>
   );
-}
+};
+
+// Export the dynamically imported component to prevent SSR issues
+export default dynamic(() => Promise.resolve(DashboardClient), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <div className="space-y-6">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+            <div className="h-10 w-32 bg-muted animate-pulse rounded" />
+          </div>
+          
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+            ))}
+          </div>
+          
+          {/* Table skeleton */}
+          <div className="space-y-2">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="h-8 bg-muted animate-pulse rounded" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+});

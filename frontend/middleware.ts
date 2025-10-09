@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { jwtVerify } from "jose"
+import { ENV } from "./config/env"
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!)
+const secret = new TextEncoder().encode(ENV.JWT_SECRET)
 
 async function verifyToken(token: string) {
     try {

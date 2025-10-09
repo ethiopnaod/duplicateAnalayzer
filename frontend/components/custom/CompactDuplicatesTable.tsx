@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo, useCallback, memo, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,14 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
   onBulkDelete,
 }: CompactDuplicatesTableProps) {
   const router = useRouter();
+  const tableId = useId();
+
+  // Minimal logging (development only)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📊 Table: ${pageRows.length} rows, page ${currentPage}`);
+    }
+  }, [pageRows.length, currentPage]);
 
   // State
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -151,25 +160,25 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
 
   return (
     <div className="border rounded-lg bg-background h-full flex flex-col">
-      {/* Ultra Compact Header */}
-      <div className="flex items-center justify-between px-2 py-1.5 border-b bg-muted/20">
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium text-xs text-foreground">
+      {/* Minimal Header */}
+      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/10">
+        <div className="flex items-center gap-3">
+          <h3 className="font-semibold text-sm text-foreground">
             {entityType === "1" ? "Organizations" : "People"}
           </h3>
-          <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-            {totalRows}
+          <Badge variant="secondary" className="text-xs px-2 py-1">
+            {totalRows.toLocaleString()}
           </Badge>
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {selectedNames.length > 0 && (
             <>
               <Button
                 variant="default"
                 size="sm"
                 onClick={handleMergeSelected}
-                className="h-6 px-2 text-xs"
+                className="h-7 px-3 text-xs"
                 disabled={isBulkProcessing}
               >
                 <Users className="h-3 w-3 mr-1" />
@@ -179,16 +188,16 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
                 variant="destructive"
                 size="sm"
                 onClick={handleBulkDelete}
-                className="h-6 px-2 text-xs"
+                className="h-7 px-3 text-xs"
                 disabled={isBulkProcessing}
               >
                 <Trash2 className="h-3 w-3 mr-1" />
-                Del ({selectedNames.length})
+                Delete ({selectedNames.length})
               </Button>
             </>
           )}
           {(isProcessing || isBulkProcessing) && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Spinner size="sm" />
               Processing...
             </div>
@@ -196,12 +205,12 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
         </div>
       </div>
 
-      {/* Ultra Compact Table */}
+      {/* Compact Table */}
       <div className="overflow-x-auto flex-1">
         <table className="w-full text-xs">
-          <thead className="bg-muted/30 sticky top-0">
-            <tr className="h-7">
-              <th className="w-8 px-2 py-1 text-left">
+          <thead className="bg-muted/20 sticky top-0">
+            <tr className="h-8">
+              <th className="w-8 px-2 text-center">
                 <Checkbox
                   checked={isAllSelected}
                   onCheckedChange={handleSelectAll}
@@ -213,52 +222,52 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
                   className="h-3 w-3"
                 />
               </th>
-              <th className="px-2 py-1 text-left font-medium text-foreground">Group</th>
-              <th className="w-16 px-2 py-1 text-left font-medium text-foreground">Type</th>
-              <th className="w-20 px-2 py-1 text-left font-medium text-foreground">Confidence</th>
-              <th className="w-12 px-2 py-1 text-center font-medium text-foreground">Count</th>
-              <th className="w-16 px-2 py-1 text-center font-medium text-foreground">Actions</th>
+              <th className="px-3 text-left font-medium text-foreground min-w-[200px]">Name</th>
+              <th className="w-16 px-2 text-center font-medium text-foreground">Type</th>
+              <th className="w-20 px-2 text-center font-medium text-foreground">Confidence</th>
+              <th className="w-16 px-2 text-center font-medium text-foreground">Count</th>
+              <th className="w-20 px-2 text-center font-medium text-foreground">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/50">
+          <tbody className="divide-y divide-border/30">
             {pageRows.map((entity, index) => (
-              <tr key={`${entity.id}-${index}`} className="hover:bg-accent/20 transition-colors h-8">
-                <td className="px-2 py-1">
+              <tr key={`${tableId}-row-${currentPage}-${index}-${entity.id}`} className="hover:bg-accent/10 transition-colors h-7">
+                <td className="px-2 text-center">
                   <Checkbox
                     checked={!!selected[entity.id.toString()]}
                     onCheckedChange={(checked) => handleRowSelect(entity.id.toString(), !!checked)}
                     className="h-3 w-3"
                   />
                 </td>
-                <td className="px-2 py-1">
-                  <div className="font-medium text-foreground truncate max-w-[250px]" title={entity.name}>
+                <td className="px-3">
+                  <div className="font-medium text-foreground truncate" title={entity.name}>
                     {entity.name}
                   </div>
                   {(entity.phoneNumbers?.length > 0 || entity.emailAddresses?.length > 0) && (
-                    <div className="text-xs text-muted-foreground truncate max-w-[250px]">
+                    <div className="text-xs text-muted-foreground truncate">
                       {entity.phoneNumbers?.length > 0 && (
-                        <span className="inline-block mr-2">📞 {entity.phoneNumbers[0]}</span>
+                        <span className="mr-3">📞 {entity.phoneNumbers[0]}</span>
                       )}
                       {entity.emailAddresses?.length > 0 && (
-                        <span className="inline-block">✉️ {entity.emailAddresses[0]}</span>
+                        <span>✉️ {entity.emailAddresses[0]}</span>
                       )}
                     </div>
                   )}
                 </td>
-                <td className="px-2 py-1">
+                <td className="px-2 text-center">
                   <Badge 
                     variant={
                       entity.matchType === 'phone' ? 'default' :
                       entity.matchType === 'email' ? 'secondary' :
                       entity.matchType === 'name' ? 'outline' : 'destructive'
                     } 
-                    className="text-xs px-1.5 py-0.5"
+                    className="text-xs px-2 py-0.5"
                   >
                     {entity.matchType?.toUpperCase() || 'NAME'}
                   </Badge>
                 </td>
-                <td className="px-2 py-1">
-                  <div className="flex items-center gap-1">
+                <td className="px-2 text-center">
+                  <div className="flex items-center justify-center gap-1">
                     <div className="w-12 bg-muted rounded-full h-1.5">
                       <div 
                         className={`h-1.5 rounded-full ${
@@ -268,18 +277,18 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
                         style={{ width: `${(entity.confidence || 0.5) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground w-8 text-right">
                       {Math.round((entity.confidence || 0.5) * 100)}%
                     </span>
                   </div>
                 </td>
-                <td className="px-2 py-1 text-center">
-                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                <td className="px-2 text-center">
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
                     {entity.duplicateCount}
                   </Badge>
                 </td>
-                <td className="px-2 py-1">
-                  <div className="flex items-center justify-center gap-0.5">
+                <td className="px-2 text-center">
+                  <div className="flex items-center justify-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -311,29 +320,31 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
         </table>
       </div>
 
-      {/* Ultra Compact Footer with Pagination */}
-      <div className="flex items-center justify-between px-2 py-1.5 border-t bg-muted/10">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalRows)} of {totalRows}</span>
+      {/* Compact Footer with Pagination */}
+      <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/5">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>
+            {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalRows)} of {totalRows.toLocaleString()}
+          </span>
           {selectedNames.length > 0 && (
             <>
               <span>•</span>
-              <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+              <Badge variant="outline" className="text-xs px-2 py-0.5">
                 {selectedNames.length} selected
               </Badge>
             </>
           )}
         </div>
         
-        {/* Ultra Compact Pagination Controls */}
+        {/* Compact Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(1)}
               disabled={currentPage <= 1 || isBulkProcessing}
-              className="h-6 w-6 p-0"
+              className="h-7 w-7 p-0"
               title="First page"
             >
               <ChevronsLeft className="h-3 w-3" />
@@ -343,24 +354,24 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1 || isBulkProcessing}
-              className="h-6 w-6 p-0"
+              className="h-7 w-7 p-0"
               title="Previous page"
             >
               <ChevronLeft className="h-3 w-3" />
             </Button>
             
-            {/* Compact Page Numbers */}
-            <div className="flex items-center gap-0.5 mx-1">
-              {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1 mx-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum;
-                if (totalPages <= 3) {
+                if (totalPages <= 5) {
                   pageNum = i + 1;
-                } else if (currentPage <= 2) {
+                } else if (currentPage <= 3) {
                   pageNum = i + 1;
-                } else if (currentPage >= totalPages - 1) {
-                  pageNum = totalPages - 2 + i;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
                 } else {
-                  pageNum = currentPage - 1 + i;
+                  pageNum = currentPage - 2 + i;
                 }
                 
                 if (pageNum > totalPages) return null;
@@ -372,7 +383,7 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
                     size="sm"
                     onClick={() => handlePageChange(pageNum)}
                     disabled={isBulkProcessing}
-                    className="h-6 w-6 p-0 text-xs"
+                    className="h-7 w-7 p-0 text-xs"
                   >
                     {pageNum}
                   </Button>
@@ -385,7 +396,7 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages || isBulkProcessing}
-              className="h-6 w-6 p-0"
+              className="h-7 w-7 p-0"
               title="Next page"
             >
               <ChevronRight className="h-3 w-3" />
@@ -395,7 +406,7 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
               size="sm"
               onClick={() => handlePageChange(totalPages)}
               disabled={currentPage >= totalPages || isBulkProcessing}
-              className="h-6 w-6 p-0"
+              className="h-7 w-7 p-0"
               title="Last page"
             >
               <ChevronsRight className="h-3 w-3" />
@@ -426,4 +437,14 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
   );
 });
 
-export default CompactDuplicatesTable;
+// Export the dynamically imported component to prevent SSR issues
+export default dynamic(() => Promise.resolve(CompactDuplicatesTable), {
+  ssr: false,
+  loading: () => (
+    <div className="space-y-1">
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div key={i} className="h-8 bg-muted animate-pulse rounded" />
+      ))}
+    </div>
+  )
+});

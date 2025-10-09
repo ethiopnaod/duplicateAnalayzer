@@ -55,9 +55,10 @@ export function useDuplicates({
   const [search, setSearch] = useState(searchTerm);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
-  // Refs for debouncing
+  // Refs for debouncing and request deduplication
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isInitialMount = useRef<boolean>(true);
+  const lastRequestRef = useRef<string>('');
 
   // Derived data
   const entities = useMemo(() => data?.entities || [], [data?.entities]);
@@ -70,22 +71,27 @@ export function useDuplicates({
 
   // Fetch data with stable dependencies
   const fetchData = useCallback(async (page: number, searchQuery: string) => {
-    if (!entityType) return;
-    
-    // Reset retry count on new search or page change
-    if (searchQuery !== search || page !== currentPage) {
-      setRetryCount(0);
+    if (!entityType) {
+      return;
     }
     
     // Don't retry if we've exceeded max retries
     if (retryCount >= maxRetries) {
-      console.log('Max retries exceeded, stopping attempts');
       return;
     }
     
+    // Prevent duplicate requests
+    const requestKey = `${entityType}-${page}-${searchQuery}`;
+    if (lastRequestRef.current === requestKey) {
+      return;
+    }
+    lastRequestRef.current = requestKey;
+    
     setIsLoading(true);
+    
     try {
       const response = await fetchDuplicates(entityType, page, pageSize, searchQuery);
+      
       setData(response);
       setRetryCount(0); // Reset retry count on success
       
@@ -105,8 +111,6 @@ export function useDuplicates({
         onBackendStatusChange?.('healthy', 'Backend connected successfully');
       }
     } catch (error) {
-      console.error('Failed to fetch duplicates from backend:', error);
-      
       // Increment retry count
       setRetryCount(prev => prev + 1);
       
@@ -133,7 +137,14 @@ export function useDuplicates({
     } finally {
       setIsLoading(false);
     }
-  }, [entityType, pageSize, onBackendStatusChange, retryCount, search, currentPage]);
+  }, [entityType, pageSize, onBackendStatusChange, retryCount]);
+
+  // Minimal logging for debugging (client-side only)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔄 useDuplicates: State update - page: ${currentPage}, search: "${search}", entities: ${entities.length}`);
+    }
+  }, [currentPage, search, entities.length]);
 
   // Refetch function
   const refetch = useCallback(async () => {
@@ -231,10 +242,15 @@ export function useDuplicates({
     if (isInitialMount.current) {
       isInitialMount.current = false;
       fetchData(1, searchTerm);
-    } else {
+    }
+  }, [entityType, searchTerm, fetchData]);
+
+  // Handle page changes
+  useEffect(() => {
+    if (!isInitialMount.current) {
       fetchData(currentPage, search);
     }
-  }, [entityType, currentPage, fetchData, search, searchTerm]);
+  }, [currentPage, search, fetchData]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

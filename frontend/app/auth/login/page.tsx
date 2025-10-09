@@ -11,7 +11,7 @@ import { FormEvent, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 const LoginPage = () => {
-    const [username, setUseranme] = useState("")
+    const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, startTransition] = useTransition()
     const [showPassword, setShowPassword] = useState(false)
@@ -60,7 +60,7 @@ const LoginPage = () => {
                             <Input
                                 value={username}
                                 onChange={(ev) => {
-                                    setUseranme(ev.target.value)
+                                    setUsername(ev.target.value)
                                 }}
                                 className="h-[2.8rem] min-w-[20rem]"
                                 type="text"
