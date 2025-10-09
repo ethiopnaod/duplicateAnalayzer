@@ -21112,3 +21112,33 @@ Timed out fetching a new connection from the connection pool. More info: http://
     at async D:\upWork\duplicateAnalayzer\backend\src\config\db.ts:26:18
     at async D:\upWork\duplicateAnalayzer\backend\src\controllers\health.controller.ts:10:3
     at async D:\upWork\duplicateAnalayzer\backend\src\utils\asyncHandler.ts:24:7
+2025-10-09 19:21:22 [error]: AI analysis failed for group
+2025-10-09 19:21:24 [error]: AI analysis failed for group
+2025-10-09 19:21:26 [error]: AI analysis failed for group
+2025-10-09 19:21:27 [error]: AI analysis failed for group
+2025-10-09 19:21:30 [error]: AI analysis failed for group
+2025-10-09 19:21:31 [error]: AI analysis failed for group
+2025-10-09 19:21:32 [error]: AI analysis failed for group
+2025-10-09 19:21:34 [error]: AI analysis failed for group
+2025-10-09 19:21:35 [error]: AI analysis failed for group
+2025-10-09 19:21:37 [error]: AI analysis failed for group
+2025-10-09 19:55:54 [error]: Entity merge failed
+2025-10-09 19:56:00 [error]: Entity merge failed
+2025-10-09 19:56:32 [error]: Entity merge failed
+2025-10-09 19:56:35 [error]: Entity merge failed
+2025-10-09 19:56:37 [error]: Entity merge failed
+2025-10-09 20:01:57 [error]: PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7459)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\src\config\db.ts:26:18
+    at async D:\upWork\duplicateAnalayzer\backend\src\controllers\health.controller.ts:10:3
+    at async D:\upWork\duplicateAnalayzer\backend\src\utils\asyncHandler.ts:24:7
+2025-10-09 20:09:18 [error]: Entity merge failed
+2025-10-09 20:15:10 [error]: Entity merge failed
+2025-10-09 20:15:50 [error]: Entity merge failed

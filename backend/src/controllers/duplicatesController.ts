@@ -46,9 +46,10 @@ export const getDuplicatesListController = expressAsyncWrapper(
               ELSE 0.85
             END as confidence,
             CASE 
-              WHEN computed_phones IS NOT NULL AND computed_phones != '' THEN CONCAT('Phone: ', computed_phones)
-              WHEN computed_emails IS NOT NULL AND computed_emails != '' THEN CONCAT('Email: ', computed_emails)
-              ELSE CONCAT('Name: ', COALESCE(name, 'Unknown'))
+              WHEN computed_phones IS NOT NULL AND computed_phones != '' THEN computed_phones
+              WHEN computed_emails IS NOT NULL AND computed_emails != '' THEN computed_emails
+              WHEN name IS NOT NULL AND name != '' THEN name
+              ELSE CONCAT('Entity_', entity_id)
             END as group_name,
             name,
             type as entity_type,
@@ -97,7 +98,7 @@ export const getDuplicatesListController = expressAsyncWrapper(
         FROM duplicate_groups 
         WHERE duplicate_count > 1
         GROUP BY group_id, match_type, confidence, group_name, entity_type, created_at, duplicate_count
-        ORDER BY confidence DESC, duplicate_count DESC
+        ORDER BY group_name ASC, duplicate_count DESC
         LIMIT ${limit}
         OFFSET ${offset}
       `;
@@ -110,9 +111,10 @@ export const getDuplicatesListController = expressAsyncWrapper(
         const phones = dup.phones ? dup.phones.split(',').filter(Boolean).map((phone: string) => PhoneFormatter.format(phone)) : [];
         const emails = dup.emails ? dup.emails.split(',').filter(Boolean) : [];
         
+        const firstName = dup.names?.split(',')[0]?.trim();
         return {
           id: dup.group_id,
-          name: dup.group_name,
+          name: dup.group_name || firstName || `Entity_${dup.entity_ids.split(',')[0]}`,
           entityType: dup.entity_type,
           createdAt: dup.created_at,
           duplicateCount: parseInt(dup.duplicate_count),
@@ -299,7 +301,7 @@ export const getDuplicatesListController = expressAsyncWrapper(
 
         const nameGroups = nameDuplicates.map((dup: any) => ({
           id: `name_${dup.name.replace(/\s+/g, '_')}`,
-          name: `Name: ${dup.name}`,
+          name: dup.name,
           entityType: dup.type,
           createdAt: dup.created_at,
           duplicateCount: parseInt(dup.duplicate_count),

@@ -6,12 +6,14 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, Users, Eye, Zap, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { toast } from "sonner";
 import Spinner from "@/components/ui/spinner";
 import MergeDialog from "@/components/custom/mergeDialog";
 import BulkDeleteDialog from "@/components/custom/BulkDeleteDialog";
 import { type TransformedDuplicateEntity } from "@/lib/api/duplicates";
+import { formatPhoneForDisplay, standardizePhoneNumber } from "@/lib/phoneUtils";
 
 interface CompactDuplicatesTableProps {
   entityType: string;
@@ -30,7 +32,7 @@ interface CompactDuplicatesTableProps {
 const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
   entityType,
   totalRows,
-  pageSize = 20,
+  pageSize = 100,
   pageRows,
   isProcessing,
   hasNextPage,
@@ -58,18 +60,33 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
   const [bulkDeleteEntities, setBulkDeleteEntities] = useState<string[]>([]);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
+  // Filter out Entity_XXX records and invalid names, then sort alphabetically
+  const filteredRows = useMemo(() => {
+    return pageRows
+      .filter(entity => 
+        !entity.name.startsWith('Entity_') && 
+        entity.name.trim() !== '' && 
+        entity.name !== 'Unknown' &&
+        entity.name !== 'No Name'
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [pageRows]);
+
+  // Update totalRows to reflect filtered count
+  const filteredTotalRows = filteredRows.length;
+
   // Derived data
   const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(totalRows / pageSize)),
-    [totalRows, pageSize]
+    () => Math.max(1, Math.ceil(filteredTotalRows / pageSize)),
+    [filteredTotalRows, pageSize]
   );
   const selectedNames = useMemo(
     () => Object.keys(selected).filter((k) => selected[k]),
     [selected]
   );
   const isAllSelected = useMemo(
-    () => pageRows.length > 0 && pageRows.every((entity) => selected[entity.id.toString()]),
-    [pageRows, selected]
+    () => filteredRows.length > 0 && filteredRows.every((entity) => selected[entity.id.toString()]),
+    [filteredRows, selected]
   );
   const isIndeterminate = useMemo(
     () => selectedNames.length > 0 && !isAllSelected,
@@ -95,25 +112,25 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
 
   const handleMergeSelected = useCallback(() => {
     // Get entity names from selected IDs
-    const selectedEntities = pageRows.filter(entity => selected[entity.id.toString()]);
+    const selectedEntities = filteredRows.filter(entity => selected[entity.id.toString()]);
     const entityNames = selectedEntities.map(entity => entity.name);
     setManualMergeEntities(entityNames);
     setManualMergeOpen(true);
-  }, [selected, pageRows]);
+  }, [selected, filteredRows]);
 
   const handleBulkDelete = useCallback(() => {
     // Get entity names from selected IDs
-    const selectedEntities = pageRows.filter(entity => selected[entity.id.toString()]);
+    const selectedEntities = filteredRows.filter(entity => selected[entity.id.toString()]);
     const entityNames = selectedEntities.map(entity => entity.name);
     setBulkDeleteEntities(entityNames);
     setBulkDeleteOpen(true);
-  }, [selected, pageRows]);
+  }, [selected, filteredRows]);
 
   const handleBulkMergeConfirm = useCallback(async (mergeName: string) => {
     if (!onBulkMerge) return;
     
     // Get entity names from selected IDs
-    const selectedEntities = pageRows.filter(entity => selected[entity.id.toString()]);
+    const selectedEntities = filteredRows.filter(entity => selected[entity.id.toString()]);
     const entityNames = selectedEntities.map(entity => entity.name);
     
     setIsBulkProcessing(true);
@@ -127,13 +144,13 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
     } finally {
       setIsBulkProcessing(false);
     }
-  }, [selected, pageRows, onBulkMerge]);
+  }, [selected, filteredRows, onBulkMerge]);
 
   const handleBulkDeleteConfirm = useCallback(async () => {
     if (!onBulkDelete) return;
     
     // Get entity names from selected IDs
-    const selectedEntities = pageRows.filter(entity => selected[entity.id.toString()]);
+    const selectedEntities = filteredRows.filter(entity => selected[entity.id.toString()]);
     const entityNames = selectedEntities.map(entity => entity.name);
     
     setIsBulkProcessing(true);
@@ -147,7 +164,7 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
     } finally {
       setIsBulkProcessing(false);
     }
-  }, [selected, pageRows, onBulkDelete]);
+  }, [selected, filteredRows, onBulkDelete]);
 
   const handlePageChange = useCallback(
     (newPage: number) => {
@@ -159,7 +176,7 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
 
 
   return (
-    <div className="border rounded-lg bg-background h-full flex flex-col">
+    <div className="border rounded-lg bg-background h-[700px] flex flex-col">
       {/* Minimal Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/10">
         <div className="flex items-center gap-3">
@@ -205,9 +222,10 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
         </div>
       </div>
 
-      {/* Compact Table */}
-      <div className="overflow-x-auto flex-1">
-        <table className="w-full text-xs">
+      {/* Fixed Height Table - No Scroll */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-hidden">
+          <table className="w-full text-xs">
           <thead className="bg-muted/20 sticky top-0">
             <tr className="h-8">
               <th className="w-8 px-2 text-center">
@@ -222,16 +240,14 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
                   className="h-3 w-3"
                 />
               </th>
-              <th className="px-3 text-left font-medium text-foreground min-w-[200px]">Name</th>
-              <th className="w-16 px-2 text-center font-medium text-foreground">Type</th>
-              <th className="w-20 px-2 text-center font-medium text-foreground">Confidence</th>
+              <th className="px-4 text-left font-medium text-foreground">Record</th>
               <th className="w-16 px-2 text-center font-medium text-foreground">Count</th>
-              <th className="w-20 px-2 text-center font-medium text-foreground">Actions</th>
+              <th className="w-24 px-2 text-center font-medium text-foreground">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/30">
-            {pageRows.map((entity, index) => (
-              <tr key={`${tableId}-row-${currentPage}-${index}-${entity.id}`} className="hover:bg-accent/10 transition-colors h-7">
+          <tbody className="divide-y divide-border/30 h-[600px] overflow-hidden">
+            {filteredRows.map((entity, index) => (
+              <tr key={`${tableId}-row-${currentPage}-${index}-${entity.id}`} className="hover:bg-accent/10 transition-colors h-6">
                 <td className="px-2 text-center">
                   <Checkbox
                     checked={!!selected[entity.id.toString()]}
@@ -239,14 +255,14 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
                     className="h-3 w-3"
                   />
                 </td>
-                <td className="px-3">
+                <td className="px-4">
                   <div className="font-medium text-foreground truncate" title={entity.name}>
                     {entity.name}
                   </div>
                   {(entity.phoneNumbers?.length > 0 || entity.emailAddresses?.length > 0) && (
                     <div className="text-xs text-muted-foreground truncate">
                       {entity.phoneNumbers?.length > 0 && (
-                        <span className="mr-3">📞 {entity.phoneNumbers[0]}</span>
+                        <span className="mr-3">📞 {formatPhoneForDisplay(entity.phoneNumbers[0])}</span>
                       )}
                       {entity.emailAddresses?.length > 0 && (
                         <span>✉️ {entity.emailAddresses[0]}</span>
@@ -255,40 +271,12 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
                   )}
                 </td>
                 <td className="px-2 text-center">
-                  <Badge 
-                    variant={
-                      entity.matchType === 'phone' ? 'default' :
-                      entity.matchType === 'email' ? 'secondary' :
-                      entity.matchType === 'name' ? 'outline' : 'destructive'
-                    } 
-                    className="text-xs px-2 py-0.5"
-                  >
-                    {entity.matchType?.toUpperCase() || 'NAME'}
-                  </Badge>
-                </td>
-                <td className="px-2 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    <div className="w-12 bg-muted rounded-full h-1.5">
-                      <div 
-                        className={`h-1.5 rounded-full ${
-                          entity.confidence > 0.8 ? 'bg-green-500' :
-                          entity.confidence > 0.6 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${(entity.confidence || 0.5) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-muted-foreground w-8 text-right">
-                      {Math.round((entity.confidence || 0.5) * 100)}%
-                    </span>
-                  </div>
-                </td>
-                <td className="px-2 text-center">
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5 font-semibold">
                     {entity.duplicateCount}
                   </Badge>
                 </td>
                 <td className="px-2 text-center">
-                  <div className="flex items-center justify-center gap-1">
+                  <div className="flex items-center justify-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -317,15 +305,16 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {/* Compact Footer with Pagination */}
       <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/5">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>
-            {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalRows)} of {totalRows.toLocaleString()}
-          </span>
+        <span>
+          {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, filteredTotalRows)} of {filteredTotalRows.toLocaleString()}
+        </span>
           {selectedNames.length > 0 && (
             <>
               <span>•</span>
@@ -336,19 +325,9 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
           )}
         </div>
         
-        {/* Compact Pagination Controls */}
+        {/* Pagination Controls with Dropdown */}
         {totalPages > 1 && (
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(1)}
-              disabled={currentPage <= 1 || isBulkProcessing}
-              className="h-7 w-7 p-0"
-              title="First page"
-            >
-              <ChevronsLeft className="h-3 w-3" />
-            </Button>
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -360,36 +339,27 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
               <ChevronLeft className="h-3 w-3" />
             </Button>
             
-            {/* Page Numbers */}
-            <div className="flex items-center gap-1 mx-2">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                if (pageNum > totalPages) return null;
-                
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={pageNum === currentPage ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handlePageChange(pageNum)}
-                    disabled={isBulkProcessing}
-                    className="h-7 w-7 p-0 text-xs"
-                  >
+            {/* Page Dropdown */}
+            <Select
+              value={currentPage.toString()}
+              onValueChange={(value) => handlePageChange(parseInt(value))}
+              disabled={isBulkProcessing}
+            >
+              <SelectTrigger className="w-20 h-7 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <SelectItem key={pageNum} value={pageNum.toString()} className="text-xs">
                     {pageNum}
-                  </Button>
-                );
-              })}
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <span className="text-xs text-muted-foreground">
+              of {totalPages}
+            </span>
             
             <Button
               variant="outline"
@@ -400,16 +370,6 @@ const CompactDuplicatesTable = memo(function CompactDuplicatesTable({
               title="Next page"
             >
               <ChevronRight className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(totalPages)}
-              disabled={currentPage >= totalPages || isBulkProcessing}
-              className="h-7 w-7 p-0"
-              title="Last page"
-            >
-              <ChevronsRight className="h-3 w-3" />
             </Button>
           </div>
         )}

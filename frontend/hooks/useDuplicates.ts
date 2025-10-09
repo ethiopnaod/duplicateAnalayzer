@@ -25,6 +25,7 @@ interface UseDuplicatesReturn {
   currentPage: number;
   totalPages: number;
   hasNextPage: boolean;
+  pageSize: number;
   
   // Loading states
   isLoading: boolean;
@@ -33,6 +34,7 @@ interface UseDuplicatesReturn {
   // Actions
   refetch: () => Promise<void>;
   setPage: (page: number) => void;
+  setPageSize: (size: number) => void;
   setSearchTerm: (term: string) => void;
   
   // Bulk operations
@@ -52,6 +54,7 @@ export function useDuplicates({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   const [search, setSearch] = useState(searchTerm);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
@@ -64,8 +67,8 @@ export function useDuplicates({
   const entities = useMemo(() => data?.entities || [], [data?.entities]);
   const totalCount = data?.totalCount || 0;
   const totalPages = useMemo(() => 
-    Math.max(1, Math.ceil(totalCount / pageSize)), 
-    [totalCount, pageSize]
+    Math.max(1, Math.ceil(totalCount / currentPageSize)), 
+    [totalCount, currentPageSize]
   );
   const hasNextPage = data?.hasNextPage || false;
 
@@ -90,7 +93,7 @@ export function useDuplicates({
     setIsLoading(true);
     
     try {
-      const response = await fetchDuplicates(entityType, page, pageSize, searchQuery);
+      const response = await fetchDuplicates(entityType, page, currentPageSize, searchQuery);
       
       setData(response);
       setRetryCount(0); // Reset retry count on success
@@ -103,7 +106,7 @@ export function useDuplicates({
           entities: [],
           totalCount: 0,
           page: page,
-          pageSize: pageSize,
+          pageSize: currentPageSize,
           hasNextPage: false,
           error: response.error
         });
@@ -137,7 +140,7 @@ export function useDuplicates({
     } finally {
       setIsLoading(false);
     }
-  }, [entityType, pageSize, onBackendStatusChange, retryCount]);
+  }, [entityType, currentPageSize, onBackendStatusChange, retryCount]);
 
   // Minimal logging for debugging (client-side only)
   useEffect(() => {
@@ -154,6 +157,12 @@ export function useDuplicates({
   // Set page
   const setPage = useCallback((page: number) => {
     setCurrentPage(page);
+  }, []);
+
+  // Set page size
+  const setPageSize = useCallback((size: number) => {
+    setCurrentPageSize(size);
+    setCurrentPage(1); // Reset to first page when changing page size
   }, []);
 
   // Debounced search term setter
@@ -267,10 +276,12 @@ export function useDuplicates({
     currentPage,
     totalPages,
     hasNextPage,
+    pageSize: currentPageSize,
     isLoading,
     isProcessing,
     refetch,
     setPage,
+    setPageSize,
     setSearchTerm,
     bulkMerge,
     bulkDelete,

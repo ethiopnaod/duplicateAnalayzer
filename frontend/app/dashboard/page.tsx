@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Users, Building2, RefreshCwIcon, Zap } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import { useEntityType, useSetEntityType } from "@/stores/entityType.store";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/custom/PageHeader";
@@ -45,6 +46,7 @@ const DashboardClient = () => {
   const entityType = useEntityType();
   const setEntityType = useSetEntityType();
   const [searchTerm, setSearchTerm] = useState("");
+  const [pageSize, setPageSizeState] = useState(200);
   const [backendStatus, setBackendStatus] = useState<{
     status: 'checking' | 'healthy' | 'unhealthy';
     message: string;
@@ -63,17 +65,19 @@ const DashboardClient = () => {
     currentPage,
     totalPages,
     hasNextPage,
+    pageSize: hookPageSize,
     isLoading,
     isProcessing,
     refetch,
     setPage,
+    setPageSize,
     setSearchTerm: setSearch,
     bulkMerge,
     bulkDelete,
     autoMerge,
   } = useHydrationSafeDuplicates({
     entityType,
-    pageSize: 50,
+    pageSize: 200,
     searchTerm,
     onBackendStatusChange: (status, message) => {
       if (process.env.NODE_ENV === 'development') {
@@ -127,9 +131,27 @@ const DashboardClient = () => {
 
   // Per-Entity AI Merge functionality
   const handleEntityAutoMerge = async (entityId: string, duplicateIds: number[]) => {
-    setAiMergeStatus({ isRunning: true, progress: 0, message: `AI analyzing entity ${entityId}...` });
+    setAiMergeStatus({ 
+      isRunning: true, 
+      progress: 10, 
+      message: `🔄 Fetching data for entity ${entityId}...` 
+    });
     
     try {
+      // Step 1: Fetch entity data
+      setAiMergeStatus({ 
+        isRunning: true, 
+        progress: 30, 
+        message: `📊 Analyzing ${duplicateIds.length} duplicate entities...` 
+      });
+
+      // Step 2: Send merge request
+      setAiMergeStatus({ 
+        isRunning: true, 
+        progress: 60, 
+        message: `🤖 AI analyzing merge compatibility...` 
+      });
+
       const response = await fetch('http://localhost:3005/api/v1/duplicates/merge-entity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,25 +166,43 @@ const DashboardClient = () => {
       
       if (result.success) {
         setAiMergeStatus({
+          isRunning: true,
+          progress: 90,
+          message: `✅ AI analysis complete! Merging ${result.data.mergedCount} duplicates...`
+        });
+
+        // Step 3: Refresh data
+        await refetch();
+        
+        setAiMergeStatus({
           isRunning: false,
           progress: 100,
-          message: `AI merge completed! Merged ${result.data.mergedCount} duplicates for entity ${entityId}.`,
+          message: `🎉 Successfully merged ${result.data.mergedCount} duplicates!`,
           results: result.data
         });
-        await refetch(); // Refresh the data
+
+        // Show success notification
+        toast.success(`Auto-merge completed! Merged ${result.data.mergedCount} duplicates.`);
+        
+        // Clear status after 3 seconds
+        setTimeout(() => {
+          setAiMergeStatus({ isRunning: false, progress: 0, message: '' });
+        }, 3000);
       } else {
         setAiMergeStatus({
           isRunning: false,
           progress: 0,
-          message: `AI merge failed: ${result.error}`
+          message: `❌ AI merge failed: ${result.message || result.error}`
         });
+        toast.error(`Auto-merge failed: ${result.message || result.error}`);
       }
     } catch (error) {
       setAiMergeStatus({
         isRunning: false,
         progress: 0,
-        message: `AI merge error: ${error}`
+        message: `❌ Auto-merge error: ${error}`
       });
+      toast.error(`Auto-merge error: ${error}`);
     }
   };
 
@@ -213,7 +253,34 @@ const DashboardClient = () => {
                 <CardTitle className="text-lg font-semibold text-foreground">
                   Duplicate {typeLabel}
                 </CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Page Size Control */}
+                  {totalCount > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Show:</span>
+                      <Select
+                        value={hookPageSize.toString()}
+                        onValueChange={(value) => {
+                          const newPageSize = parseInt(value);
+                          setPageSizeState(newPageSize);
+                          setPageSize(newPageSize);
+                        }}
+                        disabled={isProcessing}
+                      >
+                        <SelectTrigger className="w-20 h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="50" className="text-xs">50</SelectItem>
+                          <SelectItem value="100" className="text-xs">100</SelectItem>
+                          <SelectItem value="200" className="text-xs">200</SelectItem>
+                          <SelectItem value="500" className="text-xs">500</SelectItem>
+                          <SelectItem value="1000" className="text-xs">1000</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
                   {totalCount > 0 && (
                     <Badge variant="secondary" className="text-xs px-2 py-1 font-medium">
                       {totalCount} duplicates
@@ -328,7 +395,7 @@ const DashboardClient = () => {
                   <CompactDuplicatesTable
                     entityType={entityType}
                     totalRows={totalCount}
-                    pageSize={20}
+                    pageSize={hookPageSize}
                     pageRows={entities}
                     isProcessing={isProcessing}
                     hasNextPage={hasNextPage}

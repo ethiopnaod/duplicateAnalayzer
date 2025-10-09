@@ -61,56 +61,11 @@ export const mergeEntityDuplicatesController = expressAsyncWrapper(
       
       Return JSON with: {"shouldMerge": true, "confidence": 0.95, "reason": "explanation"}`;
 
+      // Simplified merge without AI for now
       try {
-        const aiResponse = await aiService.generateQueryPlan(analysisPrompt);
-        const analysis = JSON.parse(aiResponse.sql || '{"shouldMerge": true, "confidence": 0.8, "reason": "Entities appear to be duplicates"}');
-        
-        if (analysis.shouldMerge && analysis.confidence > 0.7) {
-          // Perform the merge
-          let mergedCount = 0;
-          
-          for (const duplicateId of duplicateEntityIds) {
-            await entitiesPrisma.entity.update({
-              where: { entity_id: parseInt(duplicateId) },
-              data: { 
-                is_deleted: true,
-                deleted_at: new Date(),
-                updated_at: new Date()
-              }
-            });
-            mergedCount++;
-          }
-
-          return APIResponseWriter({
-            res,
-            success: true,
-            message: `AI-powered merge completed. Merged ${mergedCount} duplicates.`,
-            statusCode: StatusCodes.OK,
-            data: {
-              mergedCount,
-              primaryEntityId,
-              mergedEntityIds: duplicateEntityIds,
-              aiAnalysis: analysis,
-              aiPowered: true
-            }
-          });
-        } else {
-          return APIResponseWriter({
-            res,
-            success: false,
-            message: `AI analysis suggests these entities should not be merged. Confidence: ${analysis.confidence}`,
-            statusCode: StatusCodes.BAD_REQUEST,
-            data: {
-              aiAnalysis: analysis,
-              aiPowered: true
-            }
-          });
-        }
-      } catch (aiError) {
-        logger.error('AI analysis failed for entity merge', { primaryEntityId, error: aiError });
-        
-        // Fallback: perform merge without AI validation
+        // Perform the merge directly
         let mergedCount = 0;
+        
         for (const duplicateId of duplicateEntityIds) {
           await entitiesPrisma.entity.update({
             where: { entity_id: parseInt(duplicateId) },
@@ -126,15 +81,25 @@ export const mergeEntityDuplicatesController = expressAsyncWrapper(
         return APIResponseWriter({
           res,
           success: true,
-          message: `Merge completed without AI validation. Merged ${mergedCount} duplicates.`,
+          message: `Auto-merge completed successfully. Merged ${mergedCount} duplicates.`,
           statusCode: StatusCodes.OK,
           data: {
             mergedCount,
             primaryEntityId,
             mergedEntityIds: duplicateEntityIds,
             aiPowered: false,
-            fallback: true
+            reason: "Direct merge without AI validation"
           }
+        });
+      } catch (mergeError) {
+        logger.error('Merge operation failed', { primaryEntityId, error: mergeError });
+        
+        return APIResponseWriter({
+          res,
+          success: false,
+          message: "Merge operation failed",
+          statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+          error: mergeError.message
         });
       }
 

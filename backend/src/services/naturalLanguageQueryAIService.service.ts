@@ -43,6 +43,42 @@ export class NaturalLanguageQueryAIService {
   }
 
   /**
+   * Analyze entities for merge compatibility using AI
+   * @param prompt The analysis prompt
+   */
+  async analyzeEntitiesForMerge(prompt: string): Promise<string> {
+    try {
+      const messages: ChatCompletionMessageParam[] = [
+        {
+          role: "system",
+          content: `You are an expert data analyst. Analyze the given entities and determine if they should be merged based on names, phone numbers, and email addresses. Return only valid JSON in this format: {"shouldMerge": boolean, "confidence": number (0-1), "reason": "explanation"}.`
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ];
+
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-35-turbo",
+        messages,
+        max_tokens: this.MAX_TOKENS,
+        temperature: 0.1,
+      });
+
+      const content = response.choices[0]?.message?.content?.trim();
+      if (!content) {
+        throw new Error("No response from AI service");
+      }
+
+      return content;
+    } catch (error) {
+      console.error("AI analysis failed:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Generate a SQL query plan from natural language.
    * @param question The user's natural language question
    * @param corrections Optional: list of { sql, error } pairs from prior failed attempts
