@@ -83,7 +83,7 @@ const useAskAI = () => ({
   askAI: async (query: string) => {
     try {
       console.log('Sending query to AI:', query);
-      const response = await fetch('http://localhost:3005/api/v1/natural-query', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/natural-query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: query })
