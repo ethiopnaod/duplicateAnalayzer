@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-const PORT = process.env.PORT as string;
+const PORT = parseInt(process.env.PORT || '3005', 10);
 const NODE_ENV = process.env.NODE_ENV as string;
 const HEALTH_CHECK_URL = process.env.HEALTH_CHECK_URL as string;
 

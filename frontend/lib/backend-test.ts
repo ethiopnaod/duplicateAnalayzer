@@ -11,49 +11,66 @@ export interface BackendHealthCheck {
 }
 
 /**
- * Test backend connection and health
+ * Test backend connection and health with retry logic
  */
-export async function testBackendConnection(): Promise<BackendHealthCheck> {
+export async function testBackendConnection(retries: number = 2): Promise<BackendHealthCheck> {
   const startTime = Date.now();
   const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3005/api/v1';
   
-  try {
-    // Test basic connectivity
-    const response = await axiosClient.get('/health', {
-      timeout: 10000, // 10 second timeout for health check
-    });
-    
-    const responseTime = Date.now() - startTime;
-    
-    return {
-      status: 'healthy',
-      message: `Backend is responding (${responseTime}ms)`,
-      responseTime,
-      backendUrl,
-    };
-  } catch (error: any) {
-    const responseTime = Date.now() - startTime;
-    
-    let message = 'Backend connection failed';
-    if (error.code === 'ECONNREFUSED') {
-      message = 'Backend server is not running or not accessible';
-    } else if (error.code === 'ETIMEDOUT') {
-      message = 'Backend request timed out';
-    } else if (error.response?.status === 404) {
-      message = 'Backend is running but health endpoint not found';
-    } else if (error.response?.status === 401) {
-      message = 'Backend is running but authentication failed';
-    } else if (error.response?.status >= 500) {
-      message = 'Backend server error';
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      // Test basic connectivity
+      const response = await axiosClient.get('/health', {
+        timeout: 30000, // 30 second timeout for health check
+      });
+      
+      const responseTime = Date.now() - startTime;
+      
+      return {
+        status: 'healthy',
+        message: `Backend is responding (${responseTime}ms)`,
+        responseTime,
+        backendUrl,
+      };
+    } catch (error: any) {
+      // If this is the last attempt, handle the error
+      if (attempt === retries) {
+        const responseTime = Date.now() - startTime;
+        
+        let message = 'Backend connection failed';
+        if (error.code === 'ECONNREFUSED') {
+          message = 'Backend server is not running or not accessible';
+        } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+          message = 'Backend request timed out - server may be slow or overloaded';
+        } else if (error.response?.status === 404) {
+          message = 'Backend is running but health endpoint not found';
+        } else if (error.response?.status === 401) {
+          message = 'Backend is running but authentication failed';
+        } else if (error.response?.status >= 500) {
+          message = 'Backend server error';
+        } else if (error.message?.includes('timeout')) {
+          message = 'Request timed out - try refreshing the page';
+        }
+        
+        return {
+          status: 'unhealthy',
+          message: `${message} (${responseTime}ms)`,
+          responseTime,
+          backendUrl,
+        };
+      }
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
     }
-    
-    return {
-      status: 'unhealthy',
-      message: `${message} (${responseTime}ms)`,
-      responseTime,
-      backendUrl,
-    };
   }
+  
+  // This should never be reached, but TypeScript requires it
+  return {
+    status: 'unhealthy',
+    message: 'Unexpected error in backend connection test',
+    backendUrl,
+  };
 }
 
 /**

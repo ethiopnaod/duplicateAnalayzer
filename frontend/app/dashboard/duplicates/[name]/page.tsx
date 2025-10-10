@@ -1,345 +1,432 @@
-"use client"
+"use client";
 
-import { motion } from "motion/react"
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Users, Phone, Mail, MapPin, Calendar, Merge, Trash2, Eye, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { ArrowLeft, Building2, GitMerge, Sparkles } from "lucide-react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-import DuplicateComparison from "./_components/DuplicateComparison"
+interface EntityData {
+  entity_id: number;
+  name: string;
+  computed_phones?: string;
+  computed_emails?: string;
+  address?: string;
+  created_at: string;
+  updated_at: string;
+  is_deleted: boolean;
+}
 
-import { useEffect, useState } from "react"
+interface DuplicateGroup {
+  groupKey: string;
+  entities: EntityData[];
+  totalCount: number;
+}
 
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import ErrorDisplay from "@/components/custom/ErrorDisplay"
-import { Spinner } from "@/components/custom/Spinner"
-import { PageHeader } from "@/components/custom/PageHeader"
-import { sidebarStore } from "@/stores/sidebar"
-import { Entity } from "@/types"
-import { toast } from "sonner"
-// Removed all mock hooks - using real backend data
-import MergeDialog from "./_components/MergeDialog"
+export default function DuplicateDetailsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const entityName = decodeURIComponent(params.name as string);
+  const [entityType, setEntityType] = useState('1');
+  
+  const [duplicateGroup, setDuplicateGroup] = useState<DuplicateGroup | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedEntities, setSelectedEntities] = useState<Set<number>>(new Set());
+  const [primaryEntity, setPrimaryEntity] = useState<number | null>(null);
+  const [merging, setMerging] = useState(false);
 
-export default function DuplicateDetailPage() {
-    const router = useRouter()
-    const params = useParams()
-    const searchParams = useSearchParams()
-    const entityName = decodeURI(params["name"] as string)
-    const entityType = searchParams.get("type") || "1"
-    const searchTerm = searchParams.get("search") || ""
+  // Get entityType from URL on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      setEntityType(urlParams.get('type') || '1');
+    }
+  }, []);
 
-    // Real backend data - these will be replaced with actual API calls
-    const [entities, setEntities] = useState<Entity[]>([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const [isMergeDialogOpen, setIsMergeDialogOpen] = useState(false)
+  // Fetch duplicate group data
+  const fetchDuplicateGroup = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/duplicates/details?name=${encodeURIComponent(entityName)}&type=${entityType}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch duplicate details');
+      }
+      const data = await response.json();
+      setDuplicateGroup(data);
+    } catch (error) {
+      console.error('Error fetching duplicate group:', error);
+      toast.error('Failed to load duplicate details');
+    } finally {
+      setLoading(false);
+    }
+  }, [entityName, entityType]);
 
-    const { isOpen } = sidebarStore()
-
-    // Fetch real data from backend
     useEffect(() => {
-        const fetchEntityDetails = async () => {
-            try {
-                setIsLoading(true)
-                // This will call your backend API to get entity details
-                const response = await fetch(`/api/duplicates/details?name=${encodeURIComponent(entityName)}&type=${entityType}`)
-                if (!response.ok) throw new Error('Failed to fetch entity details')
-                const data = await response.json()
-                setEntities(data.entities || [])
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to fetch data')
+    fetchDuplicateGroup();
+  }, [fetchDuplicateGroup]);
+
+  // Handle entity selection
+  const handleEntitySelect = (entityId: number, checked: boolean) => {
+    setSelectedEntities(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(entityId);
+      } else {
+        newSet.delete(entityId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle primary entity selection
+  const handlePrimarySelect = (entityId: number) => {
+    setPrimaryEntity(entityId);
+  };
+
+  // Manual merge functionality
+  const handleManualMerge = async () => {
+    if (!primaryEntity || selectedEntities.size === 0) {
+      toast.error('Please select a primary entity and at least one duplicate to merge');
+      return;
+    }
+
+    const duplicateIds = Array.from(selectedEntities).filter(id => id !== primaryEntity);
+    if (duplicateIds.length === 0) {
+      toast.error('Please select at least one different entity to merge');
+      return;
+    }
+
+    setMerging(true);
+    try {
+      const response = await fetch('/api/duplicates/merge-entity', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          primaryEntityId: primaryEntity.toString(),
+          duplicateEntityIds: duplicateIds,
+          entityType: entityType
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to merge entities');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        toast.success(`Successfully merged ${duplicateIds.length} duplicates`);
+        // Refresh the data
+        await fetchDuplicateGroup();
+        setSelectedEntities(new Set());
+        setPrimaryEntity(null);
+      } else {
+        throw new Error(result.message || 'Merge failed');
+      }
+    } catch (error) {
+      console.error('Manual merge error:', error);
+      toast.error('Failed to merge entities');
             } finally {
-                setIsLoading(false)
-            }
-        }
-        
-        if (entityName) {
-            fetchEntityDetails()
-        }
-    }, [entityName, entityType])
+      setMerging(false);
+    }
+  };
 
-    // Removed mock AI analysis redirect
+  // Delete selected entities
+  const handleDeleteSelected = async () => {
+    if (selectedEntities.size === 0) {
+      toast.error('Please select entities to delete');
+      return;
+    }
 
-    // --- Loading State ---
-    if (isLoading) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedEntities.size} entities?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setMerging(true);
+    try {
+      const response = await fetch('/api/duplicates/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entityIds: Array.from(selectedEntities),
+          entityType: entityType
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete entities');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        toast.success(`Successfully deleted ${selectedEntities.size} entities`);
+        await fetchDuplicateGroup();
+        setSelectedEntities(new Set());
+        setPrimaryEntity(null);
+      } else {
+        throw new Error(result.message || 'Delete failed');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete entities');
+    } finally {
+      setMerging(false);
+    }
+  };
+
+  if (loading) {
         return (
-            <div className="min-h-screen bg-background">
-                <div className="flex flex-col items-center justify-center h-screen space-y-8">
-                    <div className="relative">
-                        <Spinner size="lg" label="" />
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10" />
+            <Skeleton className="h-8 w-64" />
+          </div>
+          <div className="grid gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                     </div>
-                    <div className="text-center space-y-3 max-w-md px-6">
-                        <h2 className="text-2xl font-semibold text-foreground">Analyzing Duplicates</h2>
-                        <p className="text-lg text-muted-foreground">
-                            Deep scanning for{" "}
-                            <span className="font-medium px-2 py-1 bg-muted rounded-md border">
-                                {entityName}
-                            </span>
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Processing entity relationships and detecting conflicts...
-                        </p>
+                </CardContent>
+              </Card>
+            ))}
                     </div>
                 </div>
             </div>
-        )
+    );
     }
 
-    // --- Error State ---
-    if (error) {
+  if (!duplicateGroup) {
         return (
-            <div className="flex justify-center items-center min-h-[80vh] ">
-                <ErrorDisplay
-                    title="Failed to Load Data"
-                    message={error}
-                    className="w-full"
-                />
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Duplicate Group Not Found</h1>
+          <p className="text-muted-foreground mb-6">The requested duplicate group could not be found.</p>
+          <Button onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go Back
+          </Button>
+        </div>
             </div>
-        )
+    );
     }
 
-    // --- Empty State ---
-    if (entities.length === 0) {
         return (
-            <div className="min-h-screen bg-background px-4 py-8">
-                <div className="flex justify-center items-center min-h-[70vh]">
-                    <Card className="p-10 text-center max-w-lg shadow-md border">
-                        <div className="flex justify-center mb-6">
-                            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center">
-                                <Building2 className="w-10 h-10 text-muted-foreground" />
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.back()}
+              className="h-10 w-10"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">{entityName}</h1>
+              <p className="text-muted-foreground">
+                {duplicateGroup.totalCount} duplicate entities found
+              </p>
                             </div>
                         </div>
-                        <h3 className="text-xl font-semibold mb-3 text-foreground">No Duplicates Found</h3>
-                        <p className="text-muted-foreground mb-6 leading-relaxed">
-                            No entities match the name{" "}
-                            <span className="font-medium px-2 py-1 bg-muted rounded border">
-                                {entityName}
-                            </span>
-                            .<br />
-                            The system found no potential duplicates to analyze.
-                        </p>
+          <div className="flex items-center gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => router.back()}
-                            className="gap-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+              onClick={fetchDuplicateGroup}
+              disabled={loading}
                         >
-                            <ArrowLeft className="h-4 w-4" />
-                            Back to Search
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
                         </Button>
-                    </Card>
+          </div>
+        </div>
+
+        {/* Action Bar */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Manual Merge & Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Primary Entity:</span>
+                  <Badge variant={primaryEntity ? "default" : "secondary"}>
+                    {primaryEntity ? `Entity #${primaryEntity}` : "Not Selected"}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Selected:</span>
+                  <Badge variant="secondary">
+                    {selectedEntities.size} entities
+                  </Badge>
                 </div>
             </div>
-        )
-    }
-
-    // --- Main Page ---
-    return (
-        <main className="min-h-screen bg-background">
-            <PageHeader
-                onBack={true}
-                showBack
-                title="Duplicate Analysis"
-                description={`Review and resolve conflicting entries for: ${entityName}`}
-                actions={
-                    <div className="isolate relative hidden md:flex gap-2">
+              <div className="flex items-center gap-2">
                         <Button
-                            size="lg"
-                            variant="outline"
-                            onClick={() => setIsMergeDialogOpen(true)}
-                            className="gap-2 rounded-sm"
-                        >
-                            Manual Merge
-                        </Button>
-                        {/* Sleek floating container with smooth entry */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ duration: 0.4, ease: 'backOut' }}
-                            whileHover={{ y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            <Button
-                                size="lg"
-                                disabled={isLoading}
-                                onClick={async () => {
-                                    if (!entities.length) {
-                                        console.warn('No entities to analyze');
-                                        return;
-                                    }
-                                    // Real AI analysis - call backend
-                                    try {
-                                        const response = await fetch('/api/duplicates/analyze', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ entities, entityType })
-                                        });
-                                        if (response.ok) {
-                                            router.push("/dashboard/duplicates/analyze");
-                                        } else {
-                                            toast.error('Failed to start AI analysis');
-                                        }
-                                    } catch (error) {
-                                        toast.error('Failed to start AI analysis');
-                                    }
-                                }}
-                                className="group relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary hover:to-primary-dark text-primary-foreground gap-3 px-8 py-4 shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:shadow-xl hover:scale-105 rounded-sm flex items-center"
-                            >
-                                {/* Animated Icon with lift effect */}
-                                <motion.div
-                                    animate={
-                                        isLoading
-                                            ? {}
-                                            : {
-                                                y: [-2, 0, -2],
-                                            }
-                                    }
-                                    transition={{
-                                        y: { duration: 1.6, repeat: Infinity, ease: 'easeInOut' },
-                                    }}
-                                    className="flex-shrink-0"
-                                >
-                                    {isLoading ? (
-                                        <Spinner label="" size="sm" />
-                                    ) : (
-                                        <GitMerge className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
-                                    )}
-                                </motion.div>
-
-                                <span className="transition-colors duration-300">
-                                    {isLoading ? 'Analyzing...' : 'Analyze With AI'}
-                                </span>
-
-                                {/* Sparkle accent (optional fun touch) */}
-                                <motion.span
-                                    initial={{ scale: 1, rotate: 0 }}
-                                    animate={{ scale: 1.1, rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Infinity, repeatType: "loop" }}
-                                    className="absolute -right-2 -top-2 z-[99]"
-                                >
-                                    <Sparkles className="h-3 w-3 text-primary" />
-                                </motion.span>
-
-                                <motion.span
-                                    initial={{ scale: 1, rotate: 0 }}
-                                    animate={{ scale: 1.1, rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Infinity, repeatType: "loop" }}
-                                    className="absolute -left-2 -bottom-2 z-[99]"
-                                >
-                                    <Sparkles className="h-3 w-3 text-primary" />
-                                </motion.span>
-                            </Button>
-                        </motion.div>
-                    </div>
-                }
-            />
-
-            <section className="mx-auto bg-neutral-50 py-6">
-                <div className="fixed bottom-4 right-4 isolate block md:hidden">
-                    <div className="mb-2 flex justify-end">
-                        <Button size="lg" variant="outline" className="rounded-sm" onClick={() => setIsMergeDialogOpen(true)}>
-                            Manual Merge
-                        </Button>
-                    </div>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 0.4, ease: 'backOut' }}
-                        whileHover={{ y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        <Button
-                            size="lg"
-                            disabled={isLoading}
-                            onClick={async () => {
-                                if (!entities.length) {
-                                    console.warn('No entities to analyze');
-                                    return;
-                                }
-                                // Real AI analysis - call backend
-                                try {
-                                    const response = await fetch('/api/duplicates/analyze', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ entities, entityType })
-                                    });
-                                    if (response.ok) {
-                                        router.push("/dashboard/duplicates/analyze");
-                                    } else {
-                                        toast.error('Failed to start AI analysis');
-                                    }
-                                } catch (error) {
-                                    toast.error('Failed to start AI analysis');
-                                }
-                            }}
-                            className="group relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary hover:to-primary-dark text-primary-foreground gap-3 px-8 py-4 shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:shadow-xl hover:scale-105 rounded-sm flex items-center"
-                        >
-                            {/* Animated Icon with lift effect */}
-                            <motion.div
-                                animate={
-                                    isLoading
-                                        ? {}
-                                        : {
-                                            y: [-2, 0, -2],
-                                        }
-                                }
-                                transition={{
-                                    y: { duration: 1.6, repeat: Infinity, ease: 'easeInOut' },
-                                }}
-                                className="flex-shrink-0"
-                            >
-                                {isLoading ? (
-                                    <Spinner label="" size="sm" />
-                                ) : (
-                                    <GitMerge className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
-                                )}
-                            </motion.div>
-
-                            <span className="transition-colors duration-300">
-                                {isLoading ? 'Analyzing...' : 'Analyze With AI'}
-                            </span>
-
-                            {/* Sparkle accent (optional fun touch) */}
-                            <motion.span
-                                initial={{ scale: 1, rotate: 0 }}
-                                animate={{ scale: 1.1, rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, repeatType: "loop" }}
-                                className="absolute -right-2 -top-2 z-[99]"
-                            >
-                                <Sparkles className="h-3 w-3 text-primary" />
-                            </motion.span>
-
-                            <motion.span
-                                initial={{ scale: 1, rotate: 0 }}
-                                animate={{ scale: 1.1, rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, repeatType: "loop" }}
-                                className="absolute -left-2 -bottom-2 z-[99]"
-                            >
-                                <Sparkles className="h-3 w-3 text-primary" />
-                            </motion.span>
-                        </Button>
-                    </motion.div>
-                </div>
-
-
-
-                {/* Duplicate Comparison Section */}
-                <section
-                    className="h-[calc(100vh-6rem)] overflow-auto pl-4 pr-6"
-                    // style={{
-                    //     width: isOpen ? "calc(100vw - 330px)" : "calc(100vw - 120px)"
-                    // }}
+                  onClick={handleManualMerge}
+                  disabled={!primaryEntity || selectedEntities.size <= 1 || merging}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                    <DuplicateComparison entities={entities} searchTerm={searchTerm} />
-                </section>
-            </section>
-            <MergeDialog 
-                open={isMergeDialogOpen} 
-                onOpenChange={setIsMergeDialogOpen} 
-                entities={[]} 
-                onConfirm={(mergeName) => {
-                    console.log('Merge confirmed:', mergeName);
-                    setIsMergeDialogOpen(false);
-                }}
-            />
-        </main>
-    )
+                  <Merge className="h-4 w-4 mr-2" />
+                  {merging ? "Merging..." : "Merge Selected"}
+                        </Button>
+                            <Button
+                  variant="destructive"
+                  onClick={handleDeleteSelected}
+                  disabled={selectedEntities.size === 0 || merging}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Selected
+                            </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Instructions */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-900 mb-2">How to use Manual Merge:</h3>
+              <ol className="text-sm text-blue-800 space-y-1">
+                <li>1. Select one entity as the <strong>Primary Entity</strong> (this will be kept)</li>
+                <li>2. Select other entities as <strong>Duplicates</strong> (these will be merged into the primary)</li>
+                <li>3. Click <strong>"Merge Selected"</strong> to combine all data and mark duplicates as deleted</li>
+                <li>4. Or click <strong>"Delete Selected"</strong> to permanently mark entities as deleted</li>
+              </ol>
+                    </div>
+          </CardContent>
+        </Card>
+
+        {/* Entity List */}
+        <div className="grid gap-4">
+          {duplicateGroup.entities && duplicateGroup.entities.length > 0 ? duplicateGroup.entities.map((entity, index) => (
+            <Card key={entity.entity_id} className={`${entity.is_deleted ? 'opacity-50' : ''}`}>
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  {/* Selection Checkboxes */}
+                  <div className="flex flex-col gap-2 pt-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`select-${entity.entity_id}`}
+                        checked={selectedEntities.has(entity.entity_id)}
+                        onCheckedChange={(checked) => handleEntitySelect(entity.entity_id, !!checked)}
+                        disabled={entity.is_deleted}
+                      />
+                      <label htmlFor={`select-${entity.entity_id}`} className="text-sm font-medium">
+                        Select
+                      </label>
+                    </div>
+                    <Button
+                      variant={primaryEntity === entity.entity_id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePrimarySelect(entity.entity_id)}
+                      disabled={entity.is_deleted}
+                      className="text-xs"
+                    >
+                      {primaryEntity === entity.entity_id ? "Primary" : "Set Primary"}
+                    </Button>
+                  </div>
+
+                  {/* Entity Details */}
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        Entity #{entity.entity_id}
+                        {entity.is_deleted && (
+                          <Badge variant="destructive" className="ml-2">Deleted</Badge>
+                        )}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          ID: {entity.entity_id}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Contact Information */}
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-foreground flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Contact Information
+                        </h4>
+                        <div className="space-y-1 text-sm">
+                          <div>
+                            <span className="font-medium">Name:</span> {entity.name}
+                          </div>
+                          {entity.computed_phones && (
+                            <div>
+                              <span className="font-medium">Phone:</span> {entity.computed_phones}
+                            </div>
+                          )}
+                          {entity.computed_emails && (
+                            <div>
+                              <span className="font-medium">Email:</span> {entity.computed_emails}
+                            </div>
+                          )}
+                          {entity.address && (
+                            <div>
+                              <span className="font-medium">Address:</span> {entity.address}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Metadata */}
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-foreground flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Metadata
+                        </h4>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div>
+                            <span className="font-medium">Created:</span> {new Date(entity.created_at).toLocaleString()}
+                          </div>
+                          <div>
+                            <span className="font-medium">Updated:</span> {new Date(entity.updated_at).toLocaleString()}
+                          </div>
+                          <div>
+                            <span className="font-medium">Status:</span> {entity.is_deleted ? "Deleted" : "Active"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No entities found for this duplicate group.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

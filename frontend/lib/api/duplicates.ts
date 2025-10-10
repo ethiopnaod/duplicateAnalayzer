@@ -176,31 +176,38 @@ export async function deleteDuplicates(request: DeleteRequest): Promise<{ succes
  * Auto-merge a single duplicate entity via backend
  */
 export async function autoMergeDuplicate(
-  entityName: string,
+  primaryEntityId: string,
+  duplicateEntityIds: number[],
   entityType: string
 ): Promise<{ success: boolean; mergedId: string }> {
   try {
-    // For now, just call the regular merge with the entity name
-    // This would need to be implemented properly in the backend
-    const response = await axiosClient.post('/duplicates/auto-merge', {
-      duplicateGroups: [{
-        groupId: `auto_merge_${Math.random().toString(36).substr(2, 9)}`,
-        entityIds: [parseInt(entityName)], // Assuming entityName is actually an ID
-        keepEntityId: parseInt(entityName),
-      }]
+    const response = await axiosClient.post('/duplicates/merge-entity', {
+      primaryEntityId: parseInt(primaryEntityId),
+      duplicateEntityIds: duplicateEntityIds,
+      entityType: entityType
     });
     
     if (response.data.success) {
       return {
         success: true,
-        mergedId: entityName
+        mergedId: primaryEntityId
       };
     }
     
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error auto-merging duplicate via backend:', error);
-    throw new Error('Failed to auto-merge duplicate via backend');
+    
+    // Provide more specific error messages
+    if (error.response?.status === 500) {
+      throw new Error('Server error: Unable to process auto-merge. Please check if the backend is running properly.');
+    } else if (error.response?.status === 400) {
+      throw new Error('Invalid request: Please check the entity IDs and try again.');
+    } else if (error.code === 'ECONNREFUSED') {
+      throw new Error('Connection failed: Unable to connect to the backend server. Please ensure the backend is running.');
+    } else {
+      throw new Error(`Auto-merge failed: ${error.message || 'Unknown error occurred'}`);
+    }
   }
 }
 

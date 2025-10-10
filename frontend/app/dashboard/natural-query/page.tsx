@@ -16,36 +16,89 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { PageHeader } from "@/components/custom/PageHeader"
 // Real MessageInput component
-const MessageInput = ({ onSend, disabled, placeholder }: any) => (
-  <div className="flex gap-2">
-    <input
-      type="text"
-      placeholder={placeholder}
-      disabled={disabled}
-      className="flex-1 px-3 py-2 border rounded-md"
-      onKeyPress={(e) => e.key === 'Enter' && onSend((e.target as HTMLInputElement).value)}
-    />
-    <button onClick={() => onSend('test')} disabled={disabled}>
-      Send
-    </button>
-  </div>
-);
+const MessageInput = ({ 
+  value, 
+  onChange, 
+  onSend, 
+  disabled, 
+  placeholder, 
+  className,
+  rows = 1,
+  isGenerating 
+}: { 
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onSend: (message: string) => void; 
+  disabled: boolean; 
+  placeholder: string;
+  className?: string;
+  rows?: number;
+  isGenerating?: boolean;
+}) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (value.trim() && onSend) {
+        onSend(value.trim());
+      }
+    }
+  };
+
+  const handleSend = () => {
+    if (value.trim() && onSend) {
+      onSend(value.trim());
+    }
+  };
+
+  return (
+    <div className="flex gap-2 w-full">
+      <textarea
+        placeholder={placeholder}
+        disabled={disabled}
+        value={value}
+        onChange={onChange}
+        onKeyPress={handleKeyPress}
+        rows={rows}
+        className={`flex-1 px-4 py-3 border border-input rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      />
+      <Button 
+        onClick={handleSend} 
+        disabled={disabled || !value.trim() || isGenerating}
+        className="px-6 py-3 h-auto"
+        type="button"
+      >
+        {isGenerating ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          "Send"
+        )}
+      </Button>
+    </div>
+  );
+};
 import axios, { AxiosError } from "axios"
 import axiosClient from "@/lib/axiosClient"
 // Real backend hook for AI queries
 const useAskAI = () => ({
   askAI: async (query: string) => {
     try {
-      const response = await fetch('/api/ai/query', {
+      console.log('Sending query to AI:', query);
+      const response = await fetch('http://localhost:3005/api/v1/natural-query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ question: query })
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
+      console.log('AI Response:', result);
       return result;
     } catch (error) {
       console.error('Failed to query AI:', error);
-      return { response: 'Failed to get AI response', success: false };
+      return { message: 'Failed to get AI response', success: false };
     }
   }
 });
@@ -94,25 +147,25 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, index }) => {
   return (
     <div
       className={cn(
-        "flex gap-4 animate-in fade-in-0 slide-in-from-bottom-4 max-h-[80vh]",
+        "flex gap-3 animate-in fade-in-0 slide-in-from-bottom-4 max-w-5xl mx-auto",
         isUser ? "justify-end" : "justify-start",
       )}
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {!isUser && (
-        <div className="flex-shrink-0">
-          <div className="p-3 bg-primary rounded-2xl text-primary-foreground">
-            <Bot className="h-5 w-5" />
+        <div className="flex-shrink-0 mt-1">
+          <div className="p-2 bg-primary rounded-full text-primary-foreground shadow-sm">
+            <Bot className="h-4 w-4" />
           </div>
         </div>
       )}
 
       <div
         className={cn(
-          "max-w-4xl rounded-2xl px-6 py-4 text-sm break-words prose prose-sm prose-headings:font-semibold prose-p:leading-relaxed prose-pre:bg-muted prose-pre:rounded-xl prose-pre:p-4 prose-table:table-auto prose-th:bg-muted prose-th:px-4 prose-th:py-2 prose-td:px-4 prose-td:py-2",
+          "max-w-3xl rounded-2xl px-4 py-3 text-sm break-words prose prose-sm prose-headings:font-semibold prose-p:leading-relaxed prose-pre:bg-muted prose-pre:rounded-xl prose-pre:p-3 prose-table:table-auto prose-th:bg-muted prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded",
           isUser
-            ? "bg-primary text-primary-foreground rounded-tr-lg"
-            : "bg-card border text-card-foreground rounded-tl-lg",
+            ? "bg-primary text-primary-foreground rounded-tr-lg shadow-sm"
+            : "bg-card border text-card-foreground rounded-tl-lg shadow-sm",
         )}
       >
         {isUser ? (
@@ -123,9 +176,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, index }) => {
       </div>
 
       {isUser && (
-        <div className="flex-shrink-0">
-          <div className="p-3 bg-secondary rounded-2xl text-secondary-foreground">
-            <User className="h-5 w-5" />
+        <div className="flex-shrink-0 mt-1">
+          <div className="p-2 bg-secondary rounded-full text-secondary-foreground shadow-sm">
+            <User className="h-4 w-4" />
           </div>
         </div>
       )}
@@ -141,14 +194,16 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({ isTyping }) => {
   if (!isTyping) return null
 
   return (
-    <div className="flex gap-4 justify-start items-center animate-in fade-in-0 slide-in-from-bottom-4">
-      <div className="p-3 bg-primary rounded-2xl text-primary-foreground">
-        <Bot className="h-5 w-5" />
+    <div className="flex gap-3 justify-start items-center animate-in fade-in-0 slide-in-from-bottom-4 max-w-5xl mx-auto">
+      <div className="flex-shrink-0 mt-1">
+        <div className="p-2 bg-primary rounded-full text-primary-foreground shadow-sm">
+          <Bot className="h-4 w-4" />
+        </div>
       </div>
-      <div className="px-6 py-4 bg-card border rounded-2xl rounded-tl-lg text-sm">
+      <div className="px-4 py-3 bg-card border rounded-2xl rounded-tl-lg text-sm shadow-sm">
         <div className="flex items-center gap-3">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          <span className="text-card-foreground">Thinking...</span>
+          <span className="text-card-foreground">AI is analyzing your query...</span>
         </div>
       </div>
     </div>
@@ -195,23 +250,61 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onSubmit,
   setInput,
   isGenerating
-}) => (
-  <div className="py-4 max-w-3xl w-full mx-auto">
-    <form onSubmit={onSubmit} className="flex w-full gap-3">
-      <div className="flex-1 relative">
+}) => {
+  const handleSend = (message: string) => {
+    if (message.trim()) {
+      setInput(message);
+      onSubmit({ preventDefault: () => {} } as React.FormEvent);
+    }
+  };
+
+  const exampleQueries = [
+    "Show me all organizations",
+    "Find duplicate people",
+    "List entities with missing names",
+    "Count total duplicates"
+  ];
+
+  const handleExampleClick = (query: string) => {
+    setInput(query);
+  };
+
+  return (
+    <div className="py-4 max-w-4xl w-full mx-auto px-4">
+      {/* Example Queries */}
+      <div className="mb-3">
+        <p className="text-xs text-muted-foreground mb-2">Try these examples:</p>
+        <div className="flex flex-wrap gap-2">
+          {exampleQueries.map((query, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              size="sm"
+              onClick={() => handleExampleClick(query)}
+              disabled={isTyping || isGenerating}
+              className="text-xs h-7"
+            >
+              {query}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <form onSubmit={onSubmit} className="flex w-full">
         <MessageInput
           value={input}
           disabled={isTyping}
           onChange={(ev: React.ChangeEvent<HTMLTextAreaElement>) => setInput(ev.target.value)}
-          placeholder="Ask something like: 'Show me bank accounts for Acme Inc'"
-          className="rounded-md bg-neutral-100"
-          rows={4}
+          onSend={handleSend}
+          placeholder="Ask something like: 'Show me all organizations with more than 5 employees' or 'Find duplicates in the people table'"
+          className="bg-background border-2"
+          rows={3}
           isGenerating={isGenerating}
         />
-      </div>
-    </form>
-  </div>
-)
+      </form>
+    </div>
+  )
+}
 
 // === Main Component ===
 export default function NaturalLanguageQueryChat() {
@@ -220,8 +313,33 @@ export default function NaturalLanguageQueryChat() {
     {
       id: "1",
       type: "ai",
-      content:
-        "Hello! I'm your AI Data Assistant. Ask me anything about your database in plain English — I’ll handle the rest and reply in clear, formatted Markdown.",
+      content: `# Welcome to AI Query Assistant! 🤖
+
+I'm your intelligent database assistant powered by Azure OpenAI. I can help you query your database using natural language.
+
+## What you can ask:
+
+**📊 Data Analysis:**
+- "Show me all organizations with more than 10 employees"
+- "Find the top 5 companies by revenue"
+- "List all people in the marketing department"
+
+**🔍 Duplicate Detection:**
+- "Find duplicate organizations based on name and email"
+- "Show me potential duplicate people with similar phone numbers"
+- "List all entities that might be duplicates"
+
+**📈 Reports:**
+- "Generate a summary of all organizations"
+- "Show me the distribution of people by department"
+- "Create a report of duplicate entities"
+
+**💡 Tips:**
+- Be specific about what data you want
+- Mention filters like dates, departments, or criteria
+- Ask for summaries, counts, or detailed lists
+
+Try asking me something about your data!`,
     },
   ])
   const [isTyping, setIsTyping] = useState(false)
@@ -294,7 +412,7 @@ export default function NaturalLanguageQueryChat() {
         {
           id: (Date.now() + 1).toString(),
           type: "ai",
-content: (data?.markdown && data.markdown.trim().length > 0) ? data.markdown : "No results found.",
+          content: (data?.data?.markdown && data.data.markdown.trim().length > 0) ? data.data.markdown : (data?.markdown && data.markdown.trim().length > 0) ? data.markdown : "No results found.",
         },
       ])
     } catch (err: unknown) {
@@ -339,22 +457,22 @@ content: (data?.markdown && data.markdown.trim().length > 0) ? data.markdown : "
       {/* Header */}
       <PageHeader
         title="AI Query Assistant"
-        description="Powered by advanced AI • Real-time database queries"
+        description="Powered by Azure OpenAI • Real-time database queries"
       />
 
       {/* Main Content Area */}
-      <div className="lg:pl-4 lg:pr-8 w-full flex-1 overflow-y-auto flex flex-col pt-4 max-w-5xl mx-auto">
+      <div className="w-full flex-1 overflow-hidden flex flex-col">
         {/* Chat Area */}
         <ScrollArea
           ref={scrollAreaRef}
-          className="flex-1 relative h-[50vh] px-6"
+          className="flex-1 relative px-4 md:px-6"
         >
           <ScrollToBottomButton
             showScrollButton={showScrollButton}
             onClick={scrollToBottom}
           />
 
-          <div className="space-y-6 pb-6">
+          <div className="space-y-6 pb-6 pt-4">
             {messages.map((message, index) => (
               <div key={message.id}>
                 <MessageItem
@@ -380,13 +498,16 @@ content: (data?.markdown && data.markdown.trim().length > 0) ? data.markdown : "
           <div ref={scrollBottomRef} className="h-4" />
         </ScrollArea>
 
-        <ChatInput
-          input={input}
-          isTyping={isTyping}
-          onSubmit={handleSubmit}
-          setInput={setInput}
-          isGenerating={isGenerating}
-        />
+        {/* Fixed Input Area */}
+        <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <ChatInput
+            input={input}
+            isTyping={isTyping}
+            onSubmit={handleSubmit}
+            setInput={setInput}
+            isGenerating={isGenerating}
+          />
+        </div>
       </div>
     </div>
   )

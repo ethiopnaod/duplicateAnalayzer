@@ -4,9 +4,9 @@ import axiosClient from '@/lib/axiosClient';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { entityIds, entityType } = body;
+    const { primaryEntityId, duplicateEntityIds, entityType } = body;
 
-    if (!entityIds || !entityType) {
+    if (!primaryEntityId || !duplicateEntityIds || !entityType) {
       return NextResponse.json(
         { error: 'Missing required parameters' },
         { status: 400 }
@@ -14,16 +14,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward request to backend
-    const response = await axiosClient.post('/duplicates/delete', {
-      entityIds: entityIds,
+    const response = await axiosClient.post('/duplicates/merge-entity', {
+      primaryEntityId: parseInt(primaryEntityId),
+      duplicateEntityIds: duplicateEntityIds,
       entityType: entityType
     });
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error('Error deleting entities:', error);
+    console.error('Error merging entities:', error);
     return NextResponse.json(
-      { error: 'Failed to delete entities' },
+      { error: 'Failed to merge entities' },
       { status: 500 }
     );
   }

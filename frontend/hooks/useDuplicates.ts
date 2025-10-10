@@ -40,7 +40,7 @@ interface UseDuplicatesReturn {
   // Bulk operations
   bulkMerge: (entities: string[], mergeName: string) => Promise<void>;
   bulkDelete: (entities: string[]) => Promise<void>;
-  autoMerge: (entityName: string) => Promise<void>;
+  autoMerge: (primaryEntityId: string, duplicateEntityIds: number[]) => Promise<void>;
 }
 
 export function useDuplicates({
@@ -229,17 +229,17 @@ export function useDuplicates({
   }, [entityType, refetch]);
 
   // Auto merge single entity
-  const autoMerge = useCallback(async (entityName: string) => {
-    if (!entityType || !entityName) return;
+  const autoMerge = useCallback(async (primaryEntityId: string, duplicateEntityIds: number[]) => {
+    if (!entityType || !primaryEntityId || !duplicateEntityIds.length) return;
     
     setIsProcessing(true);
     try {
-      await autoMergeDuplicate(entityName, entityType);
-      toast.success(`Successfully auto-merged "${entityName}"`);
+      await autoMergeDuplicate(primaryEntityId, duplicateEntityIds, entityType);
+      toast.success(`Successfully auto-merged ${duplicateEntityIds.length} duplicates`);
       await refetch(); // Refresh data
-    } catch (error) {
+    } catch (error: any) {
       console.error('Auto merge failed:', error);
-      toast.error('Failed to auto-merge duplicate');
+      toast.error(error.message || 'Failed to auto-merge duplicate');
       throw error;
     } finally {
       setIsProcessing(false);

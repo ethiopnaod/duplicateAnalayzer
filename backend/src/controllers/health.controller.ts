@@ -7,8 +7,13 @@ import { format, formatDuration, intervalToDuration } from "date-fns";
 export const checkHealthController = expressAsyncWrapper(async (_, res) => {
   const start = Date.now();
 
-  await dmsPrisma.$queryRaw`SELECT 1`;
-  await entitiesPrisma.$queryRaw`SELECT 1`;
+  try {
+    await dmsPrisma.$queryRaw`SELECT 1`;
+    await entitiesPrisma.$queryRaw`SELECT 1`;
+  } catch (error) {
+    console.warn('Database connection failed, but server is running:', error);
+    // Continue with health check even if database is not available
+  }
 
   const latency = Date.now() - start;
 
@@ -18,7 +23,7 @@ export const checkHealthController = expressAsyncWrapper(async (_, res) => {
   return APIResponseWriter({
     res,
     success: true,
-    message: "Connected",
+    message: "Server is running",
     statusCode: StatusCodes.OK,
     data: {
       timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),

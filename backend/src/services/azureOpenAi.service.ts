@@ -33,10 +33,20 @@ const CONFIG = {
 };
 
 // === OPENAI CLIENT ===
-const openai = new AzureOpenAI({
-  apiKey: AZURE_OPENAI_KEY,
-  apiVersion: AZURE_OPENAI_API_VERSION,
-});
+let openai: AzureOpenAI | null = null;
+
+// Only initialize OpenAI client if we have valid credentials
+if (AZURE_OPENAI_KEY && AZURE_OPENAI_API_VERSION && AZURE_OPENAI_KEY !== 'dummy-key') {
+  try {
+    openai = new AzureOpenAI({
+      apiKey: AZURE_OPENAI_KEY,
+      apiVersion: AZURE_OPENAI_API_VERSION,
+    });
+  } catch (error) {
+    console.warn('Failed to initialize Azure OpenAI client:', error);
+    openai = null;
+  }
+}
 
 // === SERVICE CLASS ===
 export class DataCleanupService {
@@ -260,6 +270,17 @@ export class DataCleanupService {
       const prompt = this.buildPrompt(batch, keyField);
       console.log(`Sending batch of ${batch.length} rows to AI...`);
 
+      if (!openai) {
+        console.warn('Azure OpenAI client not available, skipping AI analysis');
+        return batch.map(row => ({
+          original: row,
+          cleaned: row,
+          changes: {},
+          needsReview: true,
+          isFailed: false
+        }));
+      }
+
       const response = await openai.chat.completions.create(
         {
           model: AZURE_OPENAI_DEPLOYMENT,
@@ -298,7 +319,14 @@ export class DataCleanupService {
       if (error.name === "AbortError") {
         throw new Error("AI request timed out");
       }
-      throw error;
+      console.warn("AI analysis failed, returning original data with needsReview flag");
+      return batch.map(row => ({
+        original: row,
+        cleaned: row,
+        changes: {},
+        needsReview: true,
+        isFailed: false
+      }));
     }
   }
 
@@ -359,9 +387,32 @@ ${JSON.stringify(rows, null, 2)}
     return model;
   }
 
+  /**
+   * Fallback key detection when OpenAI is not available
+   */
+  private fallbackKeyDetection(row: any): string {
+    // Common primary key field names
+    const commonKeys = ['id', 'uuid', 'entity_id', 'record_id', 'key', 'pk'];
+    
+    for (const key of commonKeys) {
+      if (row.hasOwnProperty(key) && row[key] !== null && row[key] !== undefined) {
+        return key;
+      }
+    }
+    
+    // If no common keys found, return the first non-null field
+    for (const [key, value] of Object.entries(row)) {
+      if (value !== null && value !== undefined && value !== '') {
+        return key;
+      }
+    }
+    
+    return 'id'; // Default fallback
+  }
+
   async suggestKeyFieldFromRow(
     row: Record<string, any>
-  ): Promise<string | null> {
+  ): Promise<string> {
     try {
       const prompt = `
 You are an expert in databases. Given a single database row (as a JSON object), identify the most appropriate field to use as the primary key for record updates in a Prisma query. Choose a field that is:
@@ -378,6 +429,11 @@ ${JSON.stringify(row, null, 2)}
 Return only:
 "id" or "uuid" or "email" etc. (just the key field name as a string)
 `;
+
+      if (!openai) {
+        console.warn('Azure OpenAI client not available, using fallback key detection');
+        return this.fallbackKeyDetection(row);
+      }
 
       const response = await openai.chat.completions.create({
         model: AZURE_OPENAI_DEPLOYMENT,
@@ -406,7 +462,8 @@ Return only:
       return field;
     } catch (error: any) {
       console.error("Failed to get key field from AI:", error.message);
-      throw error;
+      console.warn("Using fallback key detection");
+      return this.fallbackKeyDetection(row);
     }
   }
 

@@ -16,7 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Users, Building2, RefreshCwIcon, Zap } from "lucide-react";
+import { Users, Building2, RefreshCwIcon, Zap, CheckCircle, XCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { useEntityType, useSetEntityType } from "@/stores/entityType.store";
@@ -104,24 +106,36 @@ const DashboardClient = () => {
     setSearch(value);
   }, [setSearch]);
 
-  // Test backend connection on mount (client-side only)
+  // Test backend connection on mount (client-side only) with timeout handling
   useEffect(() => {
     const checkBackend = async () => {
+      setBackendStatus({ status: 'checking', message: 'Checking backend connection...' });
+      
       try {
-        const healthCheck = await testBackendConnection();
+        // Use a shorter timeout for the health check to avoid blocking the UI
+        const healthCheck = await Promise.race([
+          testBackendConnection(1), // Only 1 retry for faster response
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Health check timeout')), 15000)
+          )
+        ]);
+        
         setBackendStatus({
           status: healthCheck.status,
           message: healthCheck.message,
         });
       } catch (error) {
+        console.warn('Backend health check failed:', error);
         setBackendStatus({
           status: 'unhealthy',
-          message: 'Failed to connect to backend',
+          message: 'Backend connection timeout - data may load slowly',
         });
       }
     };
 
-    checkBackend();
+    // Delay the health check slightly to not block initial render
+    const timeoutId = setTimeout(checkBackend, 100);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Handle page change
@@ -129,80 +143,70 @@ const DashboardClient = () => {
     setPage(page);
   };
 
+  // Handle page size change
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSizeState(newPageSize);
+    setPageSize(newPageSize);
+    setPage(1); // Reset to first page when changing page size
+  };
+
   // Per-Entity AI Merge functionality
   const handleEntityAutoMerge = async (entityId: string, duplicateIds: number[]) => {
+    console.log('Dashboard handleEntityAutoMerge called with:', {
+      entityId,
+      duplicateIds,
+      entityType
+    });
+    
     setAiMergeStatus({ 
       isRunning: true, 
       progress: 10, 
-      message: `🔄 Fetching data for entity ${entityId}...` 
+      message: `🔄 Starting auto-merge for entity ${entityId}...` 
     });
     
     try {
-      // Step 1: Fetch entity data
+      // Update progress
       setAiMergeStatus({ 
         isRunning: true, 
         progress: 30, 
-        message: `📊 Analyzing ${duplicateIds.length} duplicate entities...` 
+        message: `🔄 Merging ${duplicateIds.length} duplicates into entity ${entityId}...` 
       });
-
-      // Step 2: Send merge request
+      
+      // Use the autoMerge function from the hook
+      await autoMerge(entityId, duplicateIds);
+      
+      // Update progress to 80% before refresh
       setAiMergeStatus({ 
         isRunning: true, 
-        progress: 60, 
-        message: `🤖 AI analyzing merge compatibility...` 
-      });
-
-      const response = await fetch('http://localhost:3005/api/v1/duplicates/merge-entity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          primaryEntityId: entityId, 
-          duplicateEntityIds: duplicateIds,
-          entityType 
-        })
+        progress: 80, 
+        message: `🔄 Updating table data...` 
       });
       
-      const result = await response.json();
+      // Refresh the table data
+      await refetch();
       
-      if (result.success) {
-        setAiMergeStatus({
-          isRunning: true,
-          progress: 90,
-          message: `✅ AI analysis complete! Merging ${result.data.mergedCount} duplicates...`
-        });
-
-        // Step 3: Refresh data
-        await refetch();
-        
-        setAiMergeStatus({
-          isRunning: false,
-          progress: 100,
-          message: `🎉 Successfully merged ${result.data.mergedCount} duplicates!`,
-          results: result.data
-        });
-
-        // Show success notification
-        toast.success(`Auto-merge completed! Merged ${result.data.mergedCount} duplicates.`);
-        
-        // Clear status after 3 seconds
-        setTimeout(() => {
-          setAiMergeStatus({ isRunning: false, progress: 0, message: '' });
-        }, 3000);
-      } else {
-        setAiMergeStatus({
-          isRunning: false,
-          progress: 0,
-          message: `❌ AI merge failed: ${result.message || result.error}`
-        });
-        toast.error(`Auto-merge failed: ${result.message || result.error}`);
-      }
+      setAiMergeStatus({ 
+        isRunning: false, 
+        progress: 100, 
+        message: `✅ Successfully merged ${duplicateIds.length} duplicates into entity ${entityId}!` 
+      });
+      
+      // Clear status after 5 seconds
+      setTimeout(() => {
+        setAiMergeStatus({ isRunning: false, progress: 0, message: '' });
+      }, 5000);
     } catch (error) {
-      setAiMergeStatus({
-        isRunning: false,
-        progress: 0,
-        message: `❌ Auto-merge error: ${error}`
+      console.error('Auto-merge error:', error);
+      setAiMergeStatus({ 
+        isRunning: false, 
+        progress: 0, 
+        message: `❌ Auto-merge failed for entity ${entityId}: ${error instanceof Error ? error.message : 'Unknown error'}` 
       });
-      toast.error(`Auto-merge error: ${error}`);
+      
+      // Clear error status after 5 seconds
+      setTimeout(() => {
+        setAiMergeStatus({ isRunning: false, progress: 0, message: '' });
+      }, 5000);
     }
   };
 
@@ -211,12 +215,12 @@ const DashboardClient = () => {
       <main className="min-h-screen bg-background">
         <PageHeader
           title="Duplicate Entries"
-          description={`Detect and resolve duplicate ${typeLabel.toLowerCase()} with AI-powered matching`}
+          description="Detect and resolve duplicate entries with AI-powered matching"
           searchValue={searchTerm}
           onSearchChange={handleSearchChange}
-          searchPlaceholder={`Search ${typeLabel.toLowerCase()}...`}
+          searchPlaceholder="Search duplicates..."
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Select value={entityType} onValueChange={setEntityType}>
                 <SelectTrigger className="h-9 cursor-pointer bg-background border-input">
                   <SelectValue />
@@ -232,6 +236,32 @@ const DashboardClient = () => {
                   ))}
                 </SelectContent>
               </Select>
+              
+              {/* Pagination in Header */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Show:</span>
+                <Select
+                  value={hookPageSize.toString()}
+                  onValueChange={(value) => {
+                    const newPageSize = parseInt(value);
+                    handlePageSizeChange(newPageSize);
+                  }}
+                  disabled={isLoading || isProcessing}
+                >
+                  <SelectTrigger className="w-20 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="50" className="text-sm">50</SelectItem>
+                    <SelectItem value="100" className="text-sm">100</SelectItem>
+                    <SelectItem value="200" className="text-sm">200</SelectItem>
+                    <SelectItem value="500" className="text-sm">500</SelectItem>
+                    <SelectItem value="1000" className="text-sm">1000</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">per page</span>
+              </div>
+              
               <Button
                 size="icon"
                 variant="default"
@@ -245,91 +275,44 @@ const DashboardClient = () => {
           }
         />
 
-        <div className="px-2 mx-auto py-2 h-[calc(100vh-120px)]">
-          {/* Results Section - Full Height */}
-          <Card className="rounded-md shadow-none h-full flex flex-col">
-            <CardHeader className="pb-2 flex-shrink-0">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-lg font-semibold text-foreground">
-                  Duplicate {typeLabel}
-                </CardTitle>
-                <div className="flex items-center gap-3">
-                  {/* Page Size Control */}
-                  {totalCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Show:</span>
-                      <Select
-                        value={hookPageSize.toString()}
-                        onValueChange={(value) => {
-                          const newPageSize = parseInt(value);
-                          setPageSizeState(newPageSize);
-                          setPageSize(newPageSize);
-                        }}
-                        disabled={isProcessing}
-                      >
-                        <SelectTrigger className="w-20 h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="50" className="text-xs">50</SelectItem>
-                          <SelectItem value="100" className="text-xs">100</SelectItem>
-                          <SelectItem value="200" className="text-xs">200</SelectItem>
-                          <SelectItem value="500" className="text-xs">500</SelectItem>
-                          <SelectItem value="1000" className="text-xs">1000</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                  
-                  {totalCount > 0 && (
-                    <Badge variant="secondary" className="text-xs px-2 py-1 font-medium">
-                      {totalCount} duplicates
-                    </Badge>
-                  )}
-                  <Badge 
-                    variant={backendStatus.status === 'healthy' ? 'default' : backendStatus.status === 'unhealthy' ? 'destructive' : 'secondary'}
-                    className="text-xs px-2 py-1 font-medium"
-                    title={backendStatus.message}
-                  >
-                    {backendStatus.status === 'healthy' ? '🟢 Connected' : 
-                     backendStatus.status === 'unhealthy' ? '🔴 Offline' : 
-                     '🟡 Checking...'}
-                  </Badge>
-                </div>
-              </div>
-              
-              {/* AI Merge Status */}
-              {aiMergeStatus.isRunning && (
-                <div className="mt-2 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+        <div className="px-1 mx-auto py-1">
+          {/* Auto-Merge Progress Bar */}
+          {aiMergeStatus.isRunning && (
+            <Alert className="mb-4 border-blue-200 bg-blue-50">
+              <Zap className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{aiMergeStatus.message}</span>
                   <div className="flex items-center gap-2">
-                    <RefreshCwIcon className="h-4 w-4 animate-spin text-purple-600" />
-                    <span className="text-sm font-medium text-purple-800">{aiMergeStatus.message}</span>
-                  </div>
-                  <div className="mt-2 w-full bg-purple-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${aiMergeStatus.progress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {aiMergeStatus.results && !aiMergeStatus.isRunning && (
-                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-800">{aiMergeStatus.message}</span>
-                  </div>
-                  {aiMergeStatus.results.analysisResults && (
-                    <div className="mt-1 text-xs text-green-700">
-                      Processed {aiMergeStatus.results.processedGroups} groups with AI analysis
+                    <div className="w-32">
+                      <Progress value={aiMergeStatus.progress} className="h-2" />
                     </div>
-                  )}
+                    <span className="text-sm text-blue-600">{aiMergeStatus.progress}%</span>
+                  </div>
                 </div>
-              )}
-            </CardHeader>
+              </AlertDescription>
+            </Alert>
+          )}
 
-            <CardContent className="pt-0 flex-1 flex flex-col min-h-0">
+          {/* Success/Error Status */}
+          {!aiMergeStatus.isRunning && aiMergeStatus.message && (
+            <Alert className={`mb-4 ${aiMergeStatus.message.includes('✅') ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+              {aiMergeStatus.message.includes('✅') ? (
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              ) : (
+                <XCircle className="h-4 w-4 text-red-600" />
+              )}
+              <AlertDescription className={aiMergeStatus.message.includes('✅') ? 'text-green-800' : 'text-red-800'}>
+                {aiMergeStatus.message}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Results Section - Full Height */}
+          <Card className="rounded-md shadow-none flex flex-col">
+              {/* Removed CardHeader to save space */}
+
+            <CardContent className="pt-0 flex flex-col">
               {/* Compact Loading State */}
               {isLoading && (
                 <div className="space-y-1 flex-1">
@@ -401,9 +384,11 @@ const DashboardClient = () => {
                     hasNextPage={hasNextPage}
                     currentPage={currentPage}
                     onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                     autoMergeOne={handleEntityAutoMerge}
                     onBulkMerge={bulkMerge}
                     onBulkDelete={bulkDelete}
+                    onRefresh={refetch}
                   />
                 </ErrorBoundary>
               )}

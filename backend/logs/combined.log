@@ -11781,3 +11781,554 @@ Timed out fetching a new connection from the connection pool. More info: http://
 2025-10-09 20:14:52 [info]: 🚀 Server running at http://localhost:3005
 2025-10-09 20:15:10 [error]: Entity merge failed
 2025-10-09 20:15:50 [error]: Entity merge failed
+2025-10-09 20:37:29 [info]: 🚀 Server running at http://localhost:3005
+2025-10-09 20:38:50 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:38:50 [error]: Failed to get duplicates
+2025-10-09 20:38:55 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:01 [error]: Failed to get duplicates
+2025-10-09 20:40:01 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:06 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:06 [error]: Failed to get duplicates
+2025-10-09 20:40:11 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:16 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:33 [error]: Failed to get duplicates
+2025-10-09 20:40:33 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:38 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:38 [error]: Failed to get duplicates
+2025-10-09 20:40:43 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:48 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:53 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:40:58 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:41:03 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-09 20:41:08 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 09:01:38 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 12:00:07 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 12:06:56 [error]: AI analysis failed for entity merge
+2025-10-10 12:28:20 [error]: Failed to get duplicates
+2025-10-10 12:28:27 [error]: PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:124:7459)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:32:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:15:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 12:31:10 [error]: AI analysis failed for group
+2025-10-10 12:31:14 [error]: AI analysis failed for group
+2025-10-10 12:31:18 [error]: AI analysis failed for group
+2025-10-10 12:31:25 [error]: AI analysis failed for group
+2025-10-10 12:31:30 [error]: AI analysis failed for group
+2025-10-10 12:31:41 [error]: AI analysis failed for group
+2025-10-10 12:31:45 [error]: AI analysis failed for group
+2025-10-10 12:31:47 [error]: AI analysis failed for group
+2025-10-10 12:31:49 [error]: AI analysis failed for group
+2025-10-10 12:31:56 [error]: AI analysis failed for group
+2025-10-10 12:50:35 [error]: PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7459)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 12:50:42 [error]: PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7459)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 12:50:55 [error]: PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:124:7459)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\entities_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:32:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:15:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 13:10:06 [error]: Failed to get duplicates
+2025-10-10 13:10:06 [error]: PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7459)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 13:21:49 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 13:24:32 [error]: RouteError: A valid 'question' string is required
+    at Function.BadRequest (D:\upWork\duplicateAnalayzer\backend\src\utils\routeErrors.ts:26:12)
+    at D:\upWork\duplicateAnalayzer\backend\src\controllers\naturalLanguageQuery.controller.ts:35:30
+    at D:\upWork\duplicateAnalayzer\backend\src\utils\asyncHandler.ts:24:13
+    at Layer.handleRequest (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\layer.js:152:17)
+    at next (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\route.js:117:3)
+    at handle (D:\upWork\duplicateAnalayzer\backend\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\layer.js:152:17)
+    at D:\upWork\duplicateAnalayzer\backend\node_modules\router\index.js:295:15
+    at processParams (D:\upWork\duplicateAnalayzer\backend\node_modules\router\index.js:582:12)
+2025-10-10 13:25:13 [error]: RouteError: A valid 'question' string is required
+    at Function.BadRequest (D:\upWork\duplicateAnalayzer\backend\src\utils\routeErrors.ts:26:12)
+    at D:\upWork\duplicateAnalayzer\backend\src\controllers\naturalLanguageQuery.controller.ts:35:30
+    at D:\upWork\duplicateAnalayzer\backend\src\utils\asyncHandler.ts:24:13
+    at Layer.handleRequest (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\layer.js:152:17)
+    at next (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\route.js:117:3)
+    at handle (D:\upWork\duplicateAnalayzer\backend\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\upWork\duplicateAnalayzer\backend\node_modules\router\lib\layer.js:152:17)
+    at D:\upWork\duplicateAnalayzer\backend\node_modules\router\index.js:295:15
+    at processParams (D:\upWork\duplicateAnalayzer\backend\node_modules\router\index.js:582:12)
+2025-10-10 13:50:05 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 13:52:07 [info]: Routing Decision
+2025-10-10 13:52:07 [info]: Routing Decision Made
+2025-10-10 13:56:01 [info]: Query Executed Successfully
+2025-10-10 13:56:18 [info]: Routing Decision
+2025-10-10 13:56:18 [info]: Routing Decision Made
+2025-10-10 14:00:54 [info]: Routing Decision
+2025-10-10 14:00:54 [info]: Routing Decision Made
+2025-10-10 14:03:57 [info]: Routing Decision
+2025-10-10 14:03:57 [info]: Routing Decision Made
+2025-10-10 14:04:05 [info]: Routing Decision
+2025-10-10 14:04:05 [info]: Routing Decision Made
+2025-10-10 14:04:09 [info]: Query Executed Successfully
+2025-10-10 14:04:24 [info]: Routing Decision
+2025-10-10 14:04:24 [info]: Routing Decision Made
+2025-10-10 14:04:27 [info]: Query Executed Successfully
+2025-10-10 14:40:11 [error]: AI analysis failed for entity merge
+2025-10-10 14:58:29 [error]: AI analysis failed for entity merge
+2025-10-10 15:19:01 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 15:50:56 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:06:55 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:13:32 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:14:54 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:19:32 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:23:27 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:31:41 [error]: Entity merge failed
+2025-10-10 16:36:02 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:37:05 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 16:37:22 [info]: Merge request received
+2025-10-10 16:37:22 [info]: Starting merge process
+2025-10-10 16:37:22 [info]: Starting merge operation
+2025-10-10 16:37:23 [info]: Primary entity found
+2025-10-10 16:37:23 [error]: Merge operation failed
+2025-10-10 16:41:30 [info]: Merge request received
+2025-10-10 16:41:30 [info]: Starting merge process
+2025-10-10 16:41:30 [info]: Starting merge operation
+2025-10-10 16:41:30 [info]: Primary entity found
+2025-10-10 16:41:32 [info]: Duplicate entities found
+2025-10-10 16:41:32 [info]: Combined data
+2025-10-10 16:41:36 [info]: Primary entity updated
+2025-10-10 16:41:38 [info]: Marked entity as deleted
+2025-10-10 16:41:43 [info]: Merge request received
+2025-10-10 16:41:43 [info]: Starting merge process
+2025-10-10 16:41:43 [info]: Starting merge operation
+2025-10-10 16:41:43 [info]: Primary entity found
+2025-10-10 16:41:43 [info]: Duplicate entities found
+2025-10-10 16:41:43 [info]: Combined data
+2025-10-10 16:41:44 [info]: Primary entity updated
+2025-10-10 16:41:46 [info]: Marked entity as deleted
+2025-10-10 16:45:33 [info]: Merge request received
+2025-10-10 16:45:33 [info]: Starting merge process
+2025-10-10 16:45:33 [info]: Starting merge operation
+2025-10-10 16:45:36 [info]: Primary entity found
+2025-10-10 16:45:36 [error]: Merge operation failed
+2025-10-10 16:50:06 [info]: Merge request received
+2025-10-10 16:50:06 [info]: Starting merge process
+2025-10-10 16:50:06 [info]: Starting merge operation
+2025-10-10 16:50:07 [info]: Primary entity found
+2025-10-10 16:50:07 [error]: Merge operation failed
+2025-10-10 16:53:47 [info]: Merge request received
+2025-10-10 16:53:47 [info]: Starting merge process
+2025-10-10 16:53:47 [info]: Starting merge operation
+2025-10-10 16:53:47 [info]: Primary entity found
+2025-10-10 16:53:48 [info]: Duplicate entities found
+2025-10-10 16:53:48 [info]: Combined data
+2025-10-10 16:53:49 [info]: Primary entity updated
+2025-10-10 16:53:50 [info]: Marked entity as deleted
+2025-10-10 16:55:57 [info]: Merge request received
+2025-10-10 16:55:57 [info]: Starting merge process
+2025-10-10 16:55:57 [info]: Starting merge operation
+2025-10-10 16:55:58 [info]: Primary entity found
+2025-10-10 16:55:58 [error]: Merge operation failed
+2025-10-10 16:57:36 [info]: Merge request received
+2025-10-10 16:57:36 [info]: Starting merge process
+2025-10-10 16:57:36 [info]: Starting merge operation
+2025-10-10 16:57:36 [info]: Primary entity found
+2025-10-10 16:57:37 [info]: Duplicate entities found
+2025-10-10 16:57:37 [error]: Merge operation failed
+2025-10-10 17:00:00 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 17:01:05 [info]: Merge request received
+2025-10-10 17:01:05 [info]: Starting merge process
+2025-10-10 17:01:05 [info]: Starting merge operation
+2025-10-10 17:01:06 [info]: Primary entity found
+2025-10-10 17:01:06 [info]: Duplicate entities found
+2025-10-10 17:01:06 [error]: Merge operation failed
+2025-10-10 17:02:00 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 17:03:00 [info]: Merge request received
+2025-10-10 17:03:00 [info]: Starting merge process
+2025-10-10 17:03:00 [info]: Starting merge operation
+2025-10-10 17:03:01 [info]: Primary entity found
+2025-10-10 17:03:01 [error]: Merge operation failed
+2025-10-10 17:05:52 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 17:07:56 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:00:33 [info]: 🚀 Server running at http://localhost:undefined
+2025-10-10 19:01:53 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:03:07 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:07:36 [info]: 🚀 Server running at http://localhost:undefined
+2025-10-10 19:08:06 [info]: 🚀 Server running at http://localhost:undefined
+2025-10-10 19:10:22 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:11:07 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:12:59 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+error: Environment variable not found: DMS_PROD_DATABASE_URL.
+  -->  schema.prisma:8
+   | 
+ 7 |   provider = "mysql"
+ 8 |   url      = env("DMS_PROD_DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 19:12:59 [error]: Failed to get duplicates
+2025-10-10 19:13:01 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+error: Environment variable not found: DMS_PROD_DATABASE_URL.
+  -->  schema.prisma:8
+   | 
+ 7 |   provider = "mysql"
+ 8 |   url      = env("DMS_PROD_DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 19:13:25 [error]: Failed to get duplicates
+2025-10-10 19:13:25 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+error: Environment variable not found: DMS_PROD_DATABASE_URL.
+  -->  schema.prisma:8
+   | 
+ 7 |   provider = "mysql"
+ 8 |   url      = env("DMS_PROD_DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 19:13:26 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+error: Environment variable not found: DMS_PROD_DATABASE_URL.
+  -->  schema.prisma:8
+   | 
+ 7 |   provider = "mysql"
+ 8 |   url      = env("DMS_PROD_DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 19:16:02 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:17:01 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:18:46 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:21:04 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:21:31 [error]: Failed to get duplicates
+2025-10-10 19:21:31 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+error: Environment variable not found: DMS_PROD_DATABASE_URL.
+  -->  schema.prisma:8
+   | 
+ 7 |   provider = "mysql"
+ 8 |   url      = env("DMS_PROD_DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 19:21:33 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+error: Environment variable not found: DMS_PROD_DATABASE_URL.
+  -->  schema.prisma:8
+   | 
+ 7 |   provider = "mysql"
+ 8 |   url      = env("DMS_PROD_DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-10 19:27:14 [info]: 🚀 Server running at http://localhost:3005
+2025-10-10 19:27:53 [info]: Merge request received
+2025-10-10 19:27:53 [info]: Starting merge process
+2025-10-10 19:27:53 [info]: Starting merge operation
+2025-10-10 19:27:53 [info]: Primary entity found
+2025-10-10 19:27:53 [error]: Merge operation failed
+2025-10-10 19:30:33 [info]: Merge request received
+2025-10-10 19:30:33 [info]: Starting merge process
+2025-10-10 19:30:33 [info]: Starting merge operation
+2025-10-10 19:30:34 [info]: Primary entity found
+2025-10-10 19:30:34 [error]: Merge operation failed
+2025-10-10 19:30:57 [info]: Routing Decision
+2025-10-10 19:30:57 [info]: Routing Decision Made
+2025-10-10 19:31:09 [info]: Routing Decision
+2025-10-10 19:31:09 [info]: Routing Decision Made
+2025-10-10 19:31:12 [info]: Query Executed Successfully
+2025-10-10 19:31:23 [info]: Routing Decision
+2025-10-10 19:31:23 [info]: Routing Decision Made
+2025-10-10 19:31:25 [info]: Query Executed Successfully
+2025-10-10 19:31:37 [info]: Routing Decision
+2025-10-10 19:31:37 [info]: Routing Decision Made
+2025-10-10 19:31:40 [info]: Query Executed Successfully

@@ -66,14 +66,6 @@ export function AppSidebar() {
       description: "Ask questions in plain English",
       pathname: "/dashboard/natural-query",
     },
-    {
-      id: "dup-rules",
-      label: "Duplicate Rules",
-      icon: Settings,
-      badge: null,
-      description: "Tune dedupe thresholds",
-      pathname: "/dashboard/duplicates/settings",
-    },
   ];
 
   const handleLogout = () => {
@@ -137,6 +129,7 @@ export function AppSidebar() {
           className="w-full justify-start gap-2"
           onClick={handleLogout}
           disabled={isPending}
+          suppressHydrationWarning
         >
           <LogOut className="h-4 w-4" />
           <span>Logout</span>
