@@ -41,8 +41,9 @@ const PORT = getRequiredNumericEnv("PORT");
 const NODE_ENV = getRequiredEnv("NODE_ENV");
 const HEALTH_CHECK_URL = getRequiredEnv("HEALTH_CHECK_URL");
 
-// ✅ MySQL Database (Prisma or mysql2)
-const DATABASE_URL = getRequiredEnv("DATABASE_URL");
+// ✅ MySQL Database (Prisma or mysql2) - Use specific database URLs
+const DMS_PROD_DATABASE_URL = getRequiredEnv("DMS_PROD_DATABASE_URL");
+const ENTITIES_PROD_DATABASE_URL = getRequiredEnv("ENTITIES_PROD_DATABASE_URL");
 const MYSQL_HOST = getRequiredEnv("MYSQL_HOST");
 const MYSQL_PORT = getRequiredEnv("MYSQL_PORT");
 const MYSQL_USER = getRequiredEnv("MYSQL_USER");
@@ -63,7 +64,8 @@ export {
   PORT,
   NODE_ENV,
   HEALTH_CHECK_URL,
-  DATABASE_URL,
+  DMS_PROD_DATABASE_URL,
+  ENTITIES_PROD_DATABASE_URL,
   MYSQL_HOST,
   MYSQL_PORT,
   MYSQL_USER,

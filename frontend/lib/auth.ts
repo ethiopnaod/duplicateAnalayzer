@@ -1,6 +1,6 @@
 "use server"
 
-import { ENV } from "@/config/env"
+import { SERVER_ENV } from "@/config/env"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { SignJWT } from "jose"
@@ -13,7 +13,17 @@ type SignInActionPayload = {
 export const signInAction = async ({ username, password }: SignInActionPayload) => {
     const cookie = await cookies()
 
-    if (username !== ENV.USERNAME || password !== ENV.PASSWORD) {
+    // Debug logging to help identify the issue
+    console.log("Login attempt:", { 
+        providedUsername: username, 
+        providedPassword: password,
+        expectedUsername: SERVER_ENV.USERNAME,
+        expectedPassword: SERVER_ENV.PASSWORD,
+        usernameMatch: username === SERVER_ENV.USERNAME,
+        passwordMatch: password === SERVER_ENV.PASSWORD
+    })
+
+    if (username !== SERVER_ENV.USERNAME || password !== SERVER_ENV.PASSWORD) {
         return {
             success: false,
             message: "Invalid username or password",
@@ -21,7 +31,7 @@ export const signInAction = async ({ username, password }: SignInActionPayload) 
     }
 
     // Signing Token with `jose`
-    const secret = new TextEncoder().encode(ENV.JWT_SECRET)
+    const secret = new TextEncoder().encode(SERVER_ENV.JWT_SECRET)
 
     const token = await new SignJWT({ username })
         .setProtectedHeader({ alg: "HS256" })

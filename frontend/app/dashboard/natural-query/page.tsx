@@ -76,14 +76,12 @@ const MessageInput = ({
     </div>
   );
 };
-import axios, { AxiosError } from "axios"
-import axiosClient from "@/lib/axiosClient"
-// Real backend hook for AI queries
+// Client-side AI query hook
 const useAskAI = () => ({
   askAI: async (query: string) => {
     try {
       console.log('Sending query to AI:', query);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/natural-query`, {
+      const response = await fetch('/api/natural-query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: query })
@@ -123,11 +121,7 @@ type QueryResponse = {
 // === Helper Functions ===
 function getServiceErrMsg(error: unknown, message?: string) {
   let errMsg = message
-  if (error instanceof AxiosError) {
-    if (error.response) {
-      errMsg = error.response.data.message
-    }
-  } else if (error instanceof Error) {
+  if (error instanceof Error) {
     if (error.message) {
       errMsg = error.message
     }

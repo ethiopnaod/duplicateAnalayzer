@@ -82,7 +82,8 @@ const DashboardClient = () => {
     pageSize: 200,
     searchTerm,
     onBackendStatusChange: (status, message) => {
-      if (process.env.NODE_ENV === 'development') {
+      // Only log in development (client-side check)
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         console.log(`🏥 Backend: ${status} - ${message}`);
       }
       setBackendStatus({ status, message });
@@ -91,7 +92,8 @@ const DashboardClient = () => {
 
   // Minimal logging for data changes (development only)
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    // Only log in development (client-side check)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.log(`📊 Dashboard: ${entities.length}/${totalCount} entities, page ${currentPage}/${totalPages}`);
     }
   }, [entities.length, totalCount, currentPage, totalPages]);

@@ -9,6 +9,7 @@ import { EyeClosedIcon, EyeIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { FormEvent, useState, useTransition } from "react"
 import { toast } from "sonner"
+import { ClientOnly } from "@/components/ui/ClientOnly"
 
 const LoginPage = () => {
     const [username, setUsername] = useState("")
@@ -46,57 +47,71 @@ const LoginPage = () => {
 
     return (
         <main className="flex h-screen justify-center items-center">
-            <form className="space-y-2" onSubmit={handleLogin}>
-                <Card className="rounded-md shadow-none border-none">
-                    <CardHeader>
-                        <CardTitle className="text-3xl text-center">Sign In</CardTitle>
-                        <CardDescription className="text-center">
-                            Analyze your data with ease.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <div className="space-y-2">
-                            <Label>Username</Label>
-                            <Input
-                                value={username}
-                                onChange={(ev) => {
-                                    setUsername(ev.target.value)
-                                }}
-                                className="h-[2.8rem] min-w-[20rem]"
-                                type="text"
-                                placeholder="nesru g" />
-
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Password</Label>
-                            <div className="relative">
+            <ClientOnly
+                fallback={
+                    <Card className="rounded-md shadow-none border-none">
+                        <CardHeader>
+                            <CardTitle className="text-3xl text-center">Sign In</CardTitle>
+                            <CardDescription className="text-center">
+                                Loading...
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+                }
+            >
+                <form className="space-y-2" onSubmit={handleLogin}>
+                    <Card className="rounded-md shadow-none border-none">
+                        <CardHeader>
+                            <CardTitle className="text-3xl text-center">Sign In</CardTitle>
+                            <CardDescription className="text-center">
+                                Analyze your data with ease.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="space-y-2">
+                                <Label>Username</Label>
                                 <Input
-                                    value={password}
+                                    value={username}
                                     onChange={(ev) => {
-                                        setPassword(ev.target.value)
+                                        setUsername(ev.target.value)
                                     }}
-                                    className="h-[2.8rem] min-w-[20rem]" type={showPassword ? "text" : "password"}
-                                    placeholder="******" />
-                                <Button
-                                    type="button"
-                                    variant={"link"}
-                                    onClick={() => {
-                                        setShowPassword(prev => !prev)
-                                    }}
-                                    className="absolute right-0 top-1/2 -translate-y-1/2"
-                                >
-                                    {showPassword ? <EyeClosedIcon /> : <EyeIcon />}
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button type="submit" className="h-[2.8rem] min-w-[20rem]" disabled={isLoading}>
-                            {isLoading ? "Signing..." : "Sign In"}</Button>
-                    </CardFooter>
+                                    className="h-[2.8rem] min-w-[20rem]"
+                                    type="text"
+                                    placeholder="nesru g" />
 
-                </Card>
-            </form>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        value={password}
+                                        onChange={(ev) => {
+                                            setPassword(ev.target.value)
+                                        }}
+                                        className="h-[2.8rem] min-w-[20rem]" 
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="******" />
+                                    <Button
+                                        type="button"
+                                        variant={"link"}
+                                        onClick={() => {
+                                            setShowPassword(prev => !prev)
+                                        }}
+                                        className="absolute right-0 top-1/2 -translate-y-1/2"
+                                    >
+                                        {showPassword ? <EyeClosedIcon /> : <EyeIcon />}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button type="submit" className="h-[2.8rem] min-w-[20rem]" disabled={isLoading}>
+                                {isLoading ? "Signing..." : "Sign In"}</Button>
+                        </CardFooter>
+
+                    </Card>
+                </form>
+            </ClientOnly>
         </main>
     )
 }

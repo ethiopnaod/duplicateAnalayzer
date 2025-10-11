@@ -7,6 +7,11 @@ function getRequiredEnv(key: string): string {
     return value;
 }
 
+// Helper function to get environment variable with fallback
+function getEnvWithFallback(key: string, fallbackKey: string): string {
+    return process.env[key] || process.env[fallbackKey] || '';
+}
+
 // Helper function to get optional environment variable with default
 function getOptionalEnv(key: string, defaultValue: string): string {
     return process.env[key] || defaultValue;
@@ -33,12 +38,13 @@ function getOptionalNumericEnv(key: string, defaultValue: number): number {
     return isNaN(parsed) ? defaultValue : parsed;
 }
 
-export const ENV = {
-    // Required environment variables
-    USERNAME: getRequiredEnv("USERNAME"),
-    PASSWORD: getRequiredEnv("PASSWORD"),
+// Server-side only environment variables (not accessible from client)
+export const SERVER_ENV = {
+    // Required server environment variables
+    // Use APP_ prefix to avoid system environment variable conflicts
+    USERNAME: getEnvWithFallback("APP_USERNAME", "USERNAME") || "admin#5515",
+    PASSWORD: getEnvWithFallback("APP_PASSWORD", "PASSWORD") || "password#5515",
     JWT_SECRET: getRequiredEnv("JWT_SECRET"),
-    NEXT_PUBLIC_BASE_URL: getRequiredEnv("NEXT_PUBLIC_BASE_URL"),
     DMS_PROD_DATABASE_URL: getRequiredEnv("DMS_PROD_DATABASE_URL"),
     ENTITIES_PROD_DATABASE_URL: getRequiredEnv("ENTITIES_PROD_DATABASE_URL"),
     MYSQL_HOST: getRequiredEnv("MYSQL_HOST"),
@@ -52,10 +58,14 @@ export const ENV = {
     AI_FOUNDRY_ENDPOINT: getRequiredEnv("AI_FOUNDRY_ENDPOINT"),
     PHPMYADMIN_URL: getRequiredEnv("PHPMYADMIN_URL"),
     HEALTH_CHECK_URL: getRequiredEnv("HEALTH_CHECK_URL"),
-
-    // Optional environment variables with defaults
-    NEXT_PUBLIC_BULK_DELETE_PATH: getOptionalEnv("NEXT_PUBLIC_BULK_DELETE_PATH", "/cleanup/entities/bulk-delete"),
     MYSQL_PORT: getRequiredNumericEnv("MYSQL_PORT"),
     PORT: getOptionalNumericEnv("PORT", 3003),
     NODE_ENV: (process.env.NODE_ENV as "production" | "development" | "test") || "production",
+}
+
+// Client-side accessible environment variables (NEXT_PUBLIC_ prefix)
+export const ENV = {
+    NEXT_PUBLIC_BASE_URL: getRequiredEnv("NEXT_PUBLIC_BASE_URL"),
+    NEXT_PUBLIC_BULK_DELETE_PATH: getOptionalEnv("NEXT_PUBLIC_BULK_DELETE_PATH", "/cleanup/entities/bulk-delete"),
+    NEXT_PUBLIC_BACKEND_URL: getOptionalEnv("NEXT_PUBLIC_BACKEND_URL", "http://localhost:3005"),
 }

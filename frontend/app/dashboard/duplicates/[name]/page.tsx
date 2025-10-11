@@ -315,8 +315,8 @@ export default function DuplicateDetailsPage() {
               <ol className="text-sm text-blue-800 space-y-1">
                 <li>1. Select one entity as the <strong>Primary Entity</strong> (this will be kept)</li>
                 <li>2. Select other entities as <strong>Duplicates</strong> (these will be merged into the primary)</li>
-                <li>3. Click <strong>"Merge Selected"</strong> to combine all data and mark duplicates as deleted</li>
-                <li>4. Or click <strong>"Delete Selected"</strong> to permanently mark entities as deleted</li>
+                <li>3. Click <strong>&quot;Merge Selected&quot;</strong> to combine all data and mark duplicates as deleted</li>
+                <li>4. Or click <strong>&quot;Delete Selected&quot;</strong> to permanently mark entities as deleted</li>
               </ol>
                     </div>
           </CardContent>

@@ -86,16 +86,19 @@ const VirtualRow = memo(({
       <div className="text-foreground truncate text-sm font-medium leading-tight" title={group.groupKey}>
         {group.groupKey}
       </div>
-      {group.records && group.records.length > 0 && (
-        <div className="text-xs text-muted-foreground truncate mt-1">
-          {group.records[0].phoneNumbers?.length > 0 && (
-            <span className="mr-3 text-xs font-mono">📞 {group.records[0].phoneNumbers[0]}</span>
-          )}
-          {group.records[0].emailAddresses?.length > 0 && (
-            <span className="text-xs font-mono">✉️ {group.records[0].emailAddresses[0]}</span>
-          )}
-        </div>
-      )}
+      {group.records && group.records.length > 0 && (() => {
+        const firstRecord = group.records[0];
+        return (
+          <div className="text-xs text-muted-foreground truncate mt-1">
+            {firstRecord?.phoneNumbers && firstRecord.phoneNumbers.length > 0 && (
+              <span className="mr-3 text-xs font-mono">📞 {firstRecord.phoneNumbers[0]}</span>
+            )}
+            {firstRecord?.emailAddresses && firstRecord.emailAddresses.length > 0 && (
+              <span className="text-xs font-mono">✉️ {firstRecord.emailAddresses[0]}</span>
+            )}
+          </div>
+        );
+      })()}
     </div>
     <div className="w-20 px-2 text-center" role="cell">
       <div className="flex items-center justify-center gap-2">

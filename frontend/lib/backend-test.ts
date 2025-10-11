@@ -1,7 +1,7 @@
 /**
  * Backend connection test utility
+ * Client-side functions use fetch to call Next.js API routes
  */
-import axiosClient from './axiosClient';
 
 export interface BackendHealthCheck {
   status: 'healthy' | 'unhealthy';
@@ -19,11 +19,17 @@ export async function testBackendConnection(retries: number = 2): Promise<Backen
   
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      // Test basic connectivity
-      const response = await axiosClient.get('/health', {
-        timeout: 30000, // 30 second timeout for health check
+      // Test basic connectivity via Next.js API route
+      const response = await fetch('/api/health', {
+        method: 'GET',
+        signal: AbortSignal.timeout(30000) // 30 second timeout for health check
       });
       
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       const responseTime = Date.now() - startTime;
       
       return {
@@ -93,16 +99,20 @@ export async function testDuplicateEndpoints(): Promise<{
   
   try {
     // Test duplicates endpoint
-    await axiosClient.get('/duplicates', { params: { type: '1', page: 1, pageSize: 1 } });
-    results.duplicates = true;
+    const response = await fetch('/api/duplicates?type=1&page=1&pageSize=1');
+    if (response.ok) {
+      results.duplicates = true;
+    }
   } catch (error) {
     console.warn('Duplicates endpoint test failed:', error);
   }
   
   try {
     // Test count endpoint
-    await axiosClient.get('/duplicates/count', { params: { type: '1' } });
-    results.count = true;
+    const response = await fetch('/api/duplicates/count?type=1');
+    if (response.ok) {
+      results.count = true;
+    }
   } catch (error) {
     console.warn('Count endpoint test failed:', error);
   }

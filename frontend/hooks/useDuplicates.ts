@@ -118,9 +118,10 @@ export function useDuplicates({
       setRetryCount(prev => prev + 1);
       
       // Show appropriate error message
-      if (error.message?.includes('Database temporarily unavailable') || 
-          error.message?.includes('timeout') ||
-          error.response?.status === 500) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('Database temporarily unavailable') || 
+          errorMessage.includes('timeout') ||
+          (error as any)?.response?.status === 500) {
         toast.error('Backend temporarily unavailable');
         onBackendStatusChange?.('unhealthy', 'Backend temporarily unavailable');
       } else {
@@ -144,7 +145,8 @@ export function useDuplicates({
 
   // Minimal logging for debugging (client-side only)
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    // Only log in development (client-side check)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.log(`🔄 useDuplicates: State update - page: ${currentPage}, search: "${search}", entities: ${entities.length}`);
     }
   }, [currentPage, search, entities.length]);

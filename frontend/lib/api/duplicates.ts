@@ -1,7 +1,7 @@
 /**
  * API utilities for duplicate management operations
+ * Client-side functions use fetch to call Next.js API routes
  */
-import axiosClient from '@/lib/axiosClient';
 
 export interface DuplicateEntity {
   id: string;
@@ -72,11 +72,18 @@ export async function fetchDuplicates(
       (params as any)[key] === undefined && delete (params as any)[key]
     );
 
-    const response = await axiosClient.get('/duplicates', { params });
+    const queryParams = new URLSearchParams(params as any).toString();
+    const response = await fetch(`/api/duplicates?${queryParams}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
     
     // Transform backend response to match frontend expectations
-    if (response.data.success && response.data.data) {
-      const backendData = response.data.data;
+    if (data.success && data.data) {
+      const backendData = data.data;
 
       const transformedEntities = backendData.duplicates.map((duplicate: any) => ({
         id: duplicate.id,
@@ -106,7 +113,7 @@ export async function fetchDuplicates(
       return result;
     }
     
-    return response.data;
+    return data;
   } catch (error) {
     throw new Error('Failed to fetch duplicates from backend');
   }
@@ -126,16 +133,26 @@ export async function mergeDuplicates(request: MergeRequest): Promise<{ success:
       }]
     };
     
-    const response = await axiosClient.post('/duplicates/merge', backendRequest);
+    const response = await fetch('/api/duplicates/merge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(backendRequest)
+    });
     
-    if (response.data.success) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
       return {
         success: true,
         mergedId: request.entities[0]
       };
     }
     
-    return response.data;
+    return data;
   } catch (error) {
     console.error('Error merging duplicates via backend:', error);
     throw new Error('Failed to merge duplicates via backend');
@@ -156,16 +173,26 @@ export async function deleteDuplicates(request: DeleteRequest): Promise<{ succes
       }]
     };
     
-    const response = await axiosClient.post('/duplicates/delete', backendRequest);
+    const response = await fetch('/api/duplicates/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(backendRequest)
+    });
     
-    if (response.data.success) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
       return {
         success: true,
         deletedCount: request.entities.length - 1 // All except the one we keep
       };
     }
     
-    return response.data;
+    return data;
   } catch (error) {
     console.error('Error deleting duplicates via backend:', error);
     throw new Error('Failed to delete duplicates via backend');
@@ -181,20 +208,30 @@ export async function autoMergeDuplicate(
   entityType: string
 ): Promise<{ success: boolean; mergedId: string }> {
   try {
-    const response = await axiosClient.post('/duplicates/merge-entity', {
-      primaryEntityId: parseInt(primaryEntityId),
-      duplicateEntityIds: duplicateEntityIds,
-      entityType: entityType
+    const response = await fetch('/api/duplicates/merge-entity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        primaryEntityId: parseInt(primaryEntityId),
+        duplicateEntityIds: duplicateEntityIds,
+        entityType: entityType
+      })
     });
     
-    if (response.data.success) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
       return {
         success: true,
         mergedId: primaryEntityId
       };
     }
     
-    return response.data;
+    return data;
   } catch (error: any) {
     console.error('Error auto-merging duplicate via backend:', error);
     
@@ -216,17 +253,21 @@ export async function autoMergeDuplicate(
  */
 export async function getDuplicateCount(entityType: string): Promise<{ count: number }> {
   try {
-    const response = await axiosClient.get('/duplicates/count', {
-      params: { type: entityType }
-    });
+    const response = await fetch(`/api/duplicates/count?type=${entityType}`);
     
-    if (response.data.success && response.data.data) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.data) {
       return {
-        count: response.data.data.count
+        count: data.data.count
       };
     }
     
-    return response.data;
+    return data;
   } catch (error) {
     console.error('Error getting duplicate count from backend:', error);
     throw new Error('Failed to get duplicate count from backend');
