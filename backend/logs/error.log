@@ -21575,3 +21575,32 @@ Validation Error Count: 1
     at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
 2025-10-10 19:27:53 [error]: Merge operation failed
 2025-10-10 19:30:34 [error]: Merge operation failed
+2025-10-11 14:55:28 [error]: Failed to get duplicates
+2025-10-11 14:55:28 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13
+2025-10-11 14:55:35 [error]: PrismaClientInitializationError: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `4.234.194.233:3308`
+
+Please make sure your database server is running at `4.234.194.233:3308`.
+    at ri.handleRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:7759)
+    at ri.handleAndLogRequestError (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6784)
+    at ri.request (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:124:6491)
+    at async l (D:\upWork\duplicateAnalayzer\backend\generated\client\dms_prod\runtime\library.js:133:9812)
+    at async D:\upWork\duplicateAnalayzer\backend\dist\config\db.js:26:20
+    at async D:\upWork\duplicateAnalayzer\backend\dist\controllers\health.controller.js:14:5
+    at async D:\upWork\duplicateAnalayzer\backend\dist\utils\asyncHandler.js:7:13

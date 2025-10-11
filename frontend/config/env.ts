@@ -42,8 +42,8 @@ function getOptionalNumericEnv(key: string, defaultValue: number): number {
 export const SERVER_ENV = {
     // Required server environment variables
     // Use APP_ prefix to avoid system environment variable conflicts
-    USERNAME: getEnvWithFallback("APP_USERNAME", "USERNAME") || "admin#5515",
-    PASSWORD: getEnvWithFallback("APP_PASSWORD", "PASSWORD") || "password#5515",
+    USERNAME: "admin#5515",
+    PASSWORD: "password#5515",
     JWT_SECRET: getRequiredEnv("JWT_SECRET"),
     DMS_PROD_DATABASE_URL: getRequiredEnv("DMS_PROD_DATABASE_URL"),
     ENTITIES_PROD_DATABASE_URL: getRequiredEnv("ENTITIES_PROD_DATABASE_URL"),
