@@ -22,7 +22,7 @@ A powerful Node.js backend service that converts natural language queries into S
 
 1. **Clone and navigate to the backend directory:**
    ```bash
-   cd backend/ai-sql-backend
+   cd ai-sql-backend
    ```
 
 2. **Install dependencies:**
@@ -50,7 +50,7 @@ A powerful Node.js backend service that converts natural language queries into S
 
 ### Environment Variables
 
-Create a `.env` file with the following variables:
+Create a `.env` file with the following variables (defaults shown):
 
 ```bash
 # Embedding Method (local or azure)
@@ -63,8 +63,9 @@ AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
 AZURE_OPENAI_EMBEDDING=text-embedding-3-large
 AZURE_OPENAI_API_VERSION=2024-08-01-preview
 
-# Disable embeddings (fallback to keyword matching)
-DISABLE_EMBEDDINGS=false
+# Disable embeddings (fallback to summary-based analysis)
+# If true, vector search is bypassed but answers still work
+DISABLE_EMBEDDINGS=true
 
 # Server Configuration
 PORT=5050
@@ -99,6 +100,7 @@ DMS_SCHEMA_PATH=dms_prod_definition.txt
 ### Development (Local Embeddings)
 ```bash
 # Set environment
+export DISABLE_EMBEDDINGS=false
 export EMBEDDING_METHOD=local
 
 # Start server
@@ -108,6 +110,7 @@ npm run dev
 ### Production (Azure Embeddings)
 ```bash
 # Set environment
+export DISABLE_EMBEDDINGS=false
 export EMBEDDING_METHOD=azure
 export AZURE_OPENAI_KEY=your_key
 export AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
@@ -268,6 +271,8 @@ npm run clean    # Clean build directory
 - Check that all required environment variables are set
 - Verify that the port (5050) is not already in use
 - Check the console for error messages
+ - Ensure you are in the correct folder. Run commands from `ai-sql-backend/`.
+   Running `npm start` from the project root will fail with ENOENT.
 
 ### Debug Mode
 
