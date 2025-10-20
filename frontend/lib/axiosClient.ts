@@ -1,7 +1,7 @@
 import { SERVER_ENV } from "@/config/env";
 import axios from "axios";
 
-// Server-side only axios client for API routes
+// Server-side only axios client for API routes (legacy backend)
 const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3005/api/v1',
   timeout: 120000, // 2 minute timeout for large datasets

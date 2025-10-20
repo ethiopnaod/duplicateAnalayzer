@@ -68,4 +68,5 @@ export const ENV = {
     NEXT_PUBLIC_BASE_URL: getRequiredEnv("NEXT_PUBLIC_BASE_URL"),
     NEXT_PUBLIC_BULK_DELETE_PATH: getOptionalEnv("NEXT_PUBLIC_BULK_DELETE_PATH", "/cleanup/entities/bulk-delete"),
     NEXT_PUBLIC_BACKEND_URL: getOptionalEnv("NEXT_PUBLIC_BACKEND_URL", "http://localhost:3005"),
+    NEXT_PUBLIC_AI_BASE_URL: getOptionalEnv("NEXT_PUBLIC_AI_BASE_URL", "http://localhost:5050"),
 }

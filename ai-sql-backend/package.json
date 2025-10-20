@@ -1,0 +1,28 @@
+{
+  "name": "ai-sql-generator-backend",
+  "version": "1.0.0",
+  "description": "AI-powered SQL generator with vector search and natural language processing",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --loader ts-node/esm src/server.ts",
+    "prestart": "npm run build",
+    "start": "node dist/server.js",
+    "build": "tsc -p ."
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "openai": "^4.73.0",
+    "ts-node": "^10.9.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.9.0",
+    "typescript": "^5.6.3"
+  }
+}

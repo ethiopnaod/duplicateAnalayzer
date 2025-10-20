@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axiosClient from '@/lib/axiosClient';
+import aiClient from '@/lib/aiClient';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,10 +10,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    // Forward request to backend
-    const response = await axiosClient.post('/ai/query', {
-      query
-    });
+    // Forward request to new AI backend
+    const response = await aiClient.post('/api/sql', { question: query });
 
     return NextResponse.json(response.data);
   } catch (error: any) {

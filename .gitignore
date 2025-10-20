@@ -1,0 +1,27 @@
+node_modules/
+**/node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package managers
+.pnpm-store/
+
+# Next.js
+.next/
+
+# Build outputs
+**/dist/
+
+# Env files
+.env
+.env.local
+**/.env
+**/.env.local

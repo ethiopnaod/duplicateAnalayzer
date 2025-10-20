@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axiosClient from '@/lib/axiosClient';
+import aiClient from '@/lib/aiClient';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const payload: any = { question: body.question };
+    if (body.plan) payload.plan = body.plan;
     
-    const response = await axiosClient.post('/natural-query', {
-      question: body.question
-    });
+    const response = await aiClient.post('/api/sql', payload);
 
     return NextResponse.json(response.data);
   } catch (error) {
