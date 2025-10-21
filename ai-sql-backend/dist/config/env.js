@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NODE_ENV = exports.PORT = exports.DMS_SCHEMA_PATH = exports.ENTITIES_SCHEMA_PATH = exports.EMBEDDING_METHOD = exports.USE_LOCAL_EMBEDDINGS = exports.DISABLE_EMBEDDINGS = exports.AZURE_OPENAI_EMBEDDING = exports.AZURE_OPENAI_ENDPOINT = exports.AZURE_OPENAI_DEPLOYMENT = exports.AZURE_OPENAI_API_VERSION = exports.AZURE_OPENAI_KEY = void 0;
+exports.DMS_DB_URL = exports.ENTITIES_DB_URL = exports.NODE_ENV = exports.PORT = exports.DMS_SCHEMA_PATH = exports.ENTITIES_SCHEMA_PATH = exports.EMBEDDING_METHOD = exports.USE_LOCAL_EMBEDDINGS = exports.DISABLE_EMBEDDINGS = exports.AZURE_OPENAI_EMBEDDING = exports.AZURE_OPENAI_ENDPOINT = exports.AZURE_OPENAI_DEPLOYMENT = exports.AZURE_OPENAI_API_VERSION = exports.AZURE_OPENAI_KEY = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.AZURE_OPENAI_KEY = process.env.AZURE_OPENAI_KEY || "";
@@ -20,3 +20,6 @@ exports.ENTITIES_SCHEMA_PATH = process.env.ENTITIES_SCHEMA_PATH || "entities_pro
 exports.DMS_SCHEMA_PATH = process.env.DMS_SCHEMA_PATH || "dms_prod_definition.txt";
 exports.PORT = parseInt(process.env.PORT || "5050", 10);
 exports.NODE_ENV = process.env.NODE_ENV || "development";
+// Database connections (MySQL)
+exports.ENTITIES_DB_URL = process.env.ENTITIES_DB_URL || ""; // e.g., mysql://user:pass@host:3306/entities
+exports.DMS_DB_URL = process.env.DMS_DB_URL || ""; // e.g., mysql://user:pass@host:3306/dms

@@ -2,9 +2,11 @@ import { Router, Request, Response } from "express";
 import { loadSchemas, buildSchemaSummary } from "./schemaLoader";
 import { classifyQuestion } from "./dbClassifier";
 import { SqlGenerator } from "./sqlGenerator";
+import { queryRaw } from "./dbClient";
 import { AnswerService } from "./answerService";
 import { VectorService } from "./vectorService";
-import { DISABLE_EMBEDDINGS } from "../config/env";
+import { DISABLE_EMBEDDINGS, EXECUTE_SQL_AUTOMATICALLY } from "../config/env";
+import { ValidatorService } from "./validatorService";
 
 export const router = Router();
 
@@ -14,6 +16,7 @@ const dmsSummary = buildSchemaSummary(schemas.dms);
 const sqlGen = new SqlGenerator();
 const vectorService = new VectorService();
 const answerService = new AnswerService(vectorService);
+const validator = new ValidatorService();
 
 router.post("/classify", (req: Request, res: Response) => {
   const question = String(req.body?.question || "").trim();
@@ -97,6 +100,89 @@ router.post("/sql", async (req: Request, res: Response) => {
   }
 });
 
+
+// Generate and execute SQL with basic result diagnostics
+router.post("/sql/run", async (req: Request, res: Response) => {
+  try {
+    const question = String(req.body?.question || "").trim();
+    if (!question) return res.status(400).json({ error: "question required" });
+
+    const cls = classifyQuestion(question, schemas);
+    const target = cls.target === "unknown" ? "entities" : cls.target;
+    const summary = target === "entities" ? entitiesSummary : dmsSummary;
+    const plan = await sqlGen.generate(question, target, summary);
+
+    // Execute the generated SQL
+    const rows = await queryRaw(target as any, plan.sql);
+
+    // Diagnostics for suspicious zeros / nulls on aggregates
+    const diagnostics: any = {};
+    if (Array.isArray(rows) && rows.length > 0) {
+      const first = rows[0] as Record<string, any>;
+      const aggregateLikeKeys = Object.keys(first).filter(k => /^(sum|avg|count|max|min|total)/i.test(k));
+      for (const key of aggregateLikeKeys) {
+        const val = first[key];
+        if (val === 0 || val === "0" || val === null) {
+          diagnostics[key] = {
+            value: val,
+            note: "Aggregate returned zero/null. Check filters (deleted_at/is_deleted) and joins."
+          };
+        }
+      }
+    }
+
+    return res.json({
+      question,
+      db_name: target,
+      sql: plan.sql,
+      notes: plan.explanation,
+      row_count: Array.isArray(rows) ? rows.length : 0,
+      diagnostics,
+      rows
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "failed" });
+  }
+});
+
+// Cursor-style unified endpoint: accepts { query, schema_chunks }
+router.post("/cursor/generate_sql", async (req: Request, res: Response) => {
+  try {
+    const question = String(req.body?.query || "").trim();
+    const schemaChunks = Array.isArray(req.body?.schema_chunks) ? req.body.schema_chunks : [];
+    if (!question) return res.status(400).json({ error: "Missing query" });
+
+    // Choose target DB by simple majority from chunk filenames (fallback to entities)
+    const entitiesCount = schemaChunks.filter((c: any) => /entities|entity/i.test(String(c.filename))).length;
+    const dmsCount = schemaChunks.filter((c: any) => /dms|deal|buy|sell/i.test(String(c.filename))).length;
+    const target: "entities" | "dms" = dmsCount > entitiesCount ? "dms" : "entities";
+    const summary = target === "entities" ? entitiesSummary : dmsSummary;
+
+    // Generate SQL
+    const plan = await sqlGen.generate(question, target, summary);
+    const generated = { db_name: target, sql: plan.sql, params: [], notes: plan.explanation, confidence: 0.7 };
+
+    // Validate
+    const validation = await validator.validate(question, schemaChunks.map((s: any) => ({ filename: s.filename, content: s.content })), { sql: generated.sql, params: generated.params });
+
+    const finalSql = validation.is_valid ? generated.sql : (validation.corrected_sql || generated.sql);
+    const finalParams = validation.is_valid ? (generated.params || []) : (validation.corrected_params || generated.params || []);
+
+    let executed: any = null;
+    if (EXECUTE_SQL_AUTOMATICALLY) {
+      try {
+        const rows = await queryRaw(target, finalSql);
+        executed = { rows, rowCount: Array.isArray(rows) ? rows.length : 0 };
+      } catch (e: any) {
+        executed = { error: e?.message || "execution failed" };
+      }
+    }
+
+    return res.json({ generated, validation, executed });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "failed" });
+  }
+});
 
 // Local vector search endpoint (integrated)
 router.get("/vector/query", async (req: Request, res: Response) => {

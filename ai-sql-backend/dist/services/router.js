@@ -5,6 +5,7 @@ const express_1 = require("express");
 const schemaLoader_1 = require("./schemaLoader");
 const dbClassifier_1 = require("./dbClassifier");
 const sqlGenerator_1 = require("./sqlGenerator");
+const dbClient_1 = require("./dbClient");
 const answerService_1 = require("./answerService");
 const vectorService_1 = require("./vectorService");
 const env_1 = require("../config/env");
@@ -87,6 +88,47 @@ exports.router.post("/sql", async (req, res) => {
             return res.status(404).json({ error: "No SQL produced from context", question });
         }
         return res.json({ question, db_name: dbGuess, sql: plan.sql, params: [], notes: plan.explanation });
+    }
+    catch (err) {
+        return res.status(500).json({ error: err.message || "failed" });
+    }
+});
+// Generate and execute SQL with basic result diagnostics
+exports.router.post("/sql/run", async (req, res) => {
+    try {
+        const question = String(req.body?.question || "").trim();
+        if (!question)
+            return res.status(400).json({ error: "question required" });
+        const cls = (0, dbClassifier_1.classifyQuestion)(question, schemas);
+        const target = cls.target === "unknown" ? "entities" : cls.target;
+        const summary = target === "entities" ? entitiesSummary : dmsSummary;
+        const plan = await sqlGen.generate(question, target, summary);
+        // Execute the generated SQL
+        const rows = await (0, dbClient_1.queryRaw)(target, plan.sql);
+        // Diagnostics for suspicious zeros / nulls on aggregates
+        const diagnostics = {};
+        if (Array.isArray(rows) && rows.length > 0) {
+            const first = rows[0];
+            const aggregateLikeKeys = Object.keys(first).filter(k => /^(sum|avg|count|max|min|total)/i.test(k));
+            for (const key of aggregateLikeKeys) {
+                const val = first[key];
+                if (val === 0 || val === "0" || val === null) {
+                    diagnostics[key] = {
+                        value: val,
+                        note: "Aggregate returned zero/null. Check filters (deleted_at/is_deleted) and joins."
+                    };
+                }
+            }
+        }
+        return res.json({
+            question,
+            db_name: target,
+            sql: plan.sql,
+            notes: plan.explanation,
+            row_count: Array.isArray(rows) ? rows.length : 0,
+            diagnostics,
+            rows
+        });
     }
     catch (err) {
         return res.status(500).json({ error: err.message || "failed" });

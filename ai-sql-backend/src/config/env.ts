@@ -19,3 +19,10 @@ export const DMS_SCHEMA_PATH = process.env.DMS_SCHEMA_PATH || "dms_prod_definiti
 
 export const PORT = parseInt(process.env.PORT || "5050", 10);
 export const NODE_ENV = process.env.NODE_ENV || "development";
+
+// Database connections (MySQL)
+export const ENTITIES_DB_URL = process.env.ENTITIES_DB_URL || ""; // e.g., mysql://user:pass@host:3306/entities
+export const DMS_DB_URL = process.env.DMS_DB_URL || ""; // e.g., mysql://user:pass@host:3306/dms
+
+// Execution toggle for generated SQL
+export const EXECUTE_SQL_AUTOMATICALLY = (process.env.EXECUTE_SQL_AUTOMATICALLY || "false").toLowerCase() === "true";
