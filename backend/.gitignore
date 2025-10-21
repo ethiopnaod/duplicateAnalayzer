@@ -4,3 +4,6 @@ dist
 
 .env
 
+# Catch all variants like .env.development, .env.test
+.env.*
+

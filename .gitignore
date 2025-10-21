@@ -23,5 +23,8 @@ yarn-error.log*
 # Env files
 .env
 .env.local
+.# Keep broad patterns to catch all variants like .env.development, .env.test, etc.
+.env.*
 **/.env
 **/.env.local
+**/.env.*
