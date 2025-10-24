@@ -1,0 +1,39 @@
+1.
+{
+    "data": [
+        {
+            "average_deal_size": null
+        }
+    ]
+}
+
+
+2. {
+    "data": []
+} 
+
+
+3. 
+{
+    "data": []
+}
+
+4. {
+    "success": false,
+    "message": "\nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `1054`. Message: `Unknown column 'p.entity_id' in 'on clause'`",
+    "error": {
+        "name": "PrismaClientKnownRequestError",
+        "message": "\nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `1054`. Message: `Unknown column 'p.entity_id' in 'on clause'`"
+    }
+} 
+5. {
+    "data": []
+} 
+6.{
+    "success": false,
+    "message": "\nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `1054`. Message: `Unknown column 'content' in 'field list'`",
+    "error": {
+        "name": "PrismaClientKnownRequestError",
+        "message": "\nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `1054`. Message: `Unknown column 'content' in 'field list'`"
+    }
+}

@@ -1,0 +1,32 @@
+1. what is the average deal size in 2025?
+DATABASE :  Entities 
+SELECT AVG(face_value) AS average_deal_size FROM buy WHERE YEAR(issued) = 2025 AND deleted_at IS NULL
+
+
+2. how many master tickets are there and list them please?
+DATABASE :  DMS
+
+SELECT COUNT(*) AS total_master_tickets, ticket_subject FROM leads_tickets WHERE master_ticket_crm_id IS NULL AND is_delete IS NULL GROUP BY ticket_subject
+
+3. give me a short list of 50 master tickets and their subjects ?
+DATABASE :  DMS
+
+SELECT id, ticket_subject FROM leads_tickets WHERE is_delete IS NULL ORDER BY id DESC LIMIT 50
+
+4. could you please share the mobile number of Shubham rawat?
+
+DATABASE :  Entities 
+
+SELECT p.number FROM people pe JOIN entity e ON pe.entity_id = e.entity_id JOIN phone p ON pe.entity_id = p.entity_id WHERE e.name = 'Shubham rawat' AND e.is_deleted = 0 AND p.phone_type = 'mobile'
+
+5. overview of this ticket tk188089?
+DATABASE :  DMS
+
+SELECT lt.product_name, lt.lead_source_details, lt.deadline_date, lt.lead_status_id, lt.last_modified_on, lt.investment_hours, lt.total_inbound, lt.total_outbound, lt.total_comment, lt.total_conversation, lt.last_communications, lt.last_sold_chat_on, lt.last_conversation_on, lt.summary, lt.referral_organisation, lt.company_name, lt.finance_value, lt.turn_over, lt.opportunity_name, lt.total_inbound, lt.total_outbound, lt.total_comment, lt.total_conversation, lt.last_communications, lt.last_sold_chat_on, lt.last_conversation_on, lt.rate, lt.ptv, lt.dso, lt.pv_to FROM leads_transactions lt WHERE lt.product_name = 'tk188089' AND lt.is_delete IS NULL
+
+6. give me last 5 messages of this ticket tk188089?
+DATABASE :  DMS
+
+SELECT content FROM email_history WHERE ticket_id = 'tk188089' ORDER BY sent_date DESC LIMIT 5
+
+

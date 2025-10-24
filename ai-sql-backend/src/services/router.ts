@@ -18,6 +18,20 @@ const vectorService = new VectorService();
 const answerService = new AnswerService(vectorService);
 const validator = new ValidatorService();
 
+function stripInvalidEntityPropertyDeletedAt(sql: string): string {
+  try {
+    const m = sql.match(/\bentity_property\s+([A-Za-z_][A-Za-z0-9_]*)/i);
+    if (!m) return sql;
+    const alias = m[1];
+    const pattern = new RegExp(`\\b${alias}\\.deleted_at\\s+IS\\s+NULL`, 'gi');
+    let s = sql.replace(pattern, '1=1');
+    s = s.replace(/WHERE\s+1=1\s+AND\s+/gi, 'WHERE ');
+    s = s.replace(/\s+AND\s+1=1(\s|$)/gi, ' ');
+    s = s.replace(/WHERE\s+1=1(\s|$)/gi, 'WHERE ');
+    return s;
+  } catch { return sql; }
+}
+
 router.post("/classify", (req: Request, res: Response) => {
   const question = String(req.body?.question || "").trim();
   if (!question) return res.status(400).json({ error: "question required" });
@@ -36,38 +50,6 @@ router.post("/ai/answer", async (req: Request, res: Response) => {
   }
 });
 
-// Embeddings-based SQL: embed → retrieve top chunks → LLM SQL
-router.post("/sql-embed", async (req: Request, res: Response) => {
-  try {
-    const question = String(req.body?.question || "").trim();
-    if (!question) return res.status(400).json({ error: "question required" });
-
-    if (DISABLE_EMBEDDINGS) {
-      // Fallback to non-embedding flow using schema summaries
-      const cls = classifyQuestion(question, schemas);
-      const target = cls.target === "unknown" ? "entities" : cls.target;
-      const summary = target === "entities" ? entitiesSummary : dmsSummary;
-      const plan = await sqlGen.generate(question, target, summary);
-      return res.json({ question, db_name: target, sql: plan.sql, params: [], notes: plan.explanation });
-    }
-
-    await vectorService.build("entities_prod_definition.txt", "dms_prod_definition.txt");
-    const top = await vectorService.search(question, 5);
-    const dbGuess = top.filter(t => t.db === 'entities').length >= top.filter(t => t.db === 'dms').length ? 'entities' : 'dms';
-    const context = top.map((t, i) => `# CHUNK ${i+1} [${t.db.toUpperCase()}]\n${t.text}`).join("\n\n");
-
-    const prompt = `You are a senior SQL engineer. Using ONLY the schema context below, generate a parameterized SELECT statement that answers the user's question. Use $1,$2 style parameters. Never invent tables/columns not present.\n\nUSER QUESTION:\n${question}\n\nSCHEMA CONTEXT:\n${context}`;
-
-    const plan = await sqlGen.generate(prompt, dbGuess as any, dbGuess === 'entities' ? entitiesSummary : dmsSummary);
-    if (!plan?.sql) {
-      return res.status(404).json({ error: "No SQL produced from context", question });
-    }
-    return res.json({ question, db_name: dbGuess, sql: plan.sql, params: [], notes: plan.explanation });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "failed" });
-  }
-});
-
 // Main SQL endpoint - same as sql-embed
 router.post("/sql", async (req: Request, res: Response) => {
   try {
@@ -75,12 +57,12 @@ router.post("/sql", async (req: Request, res: Response) => {
     if (!question) return res.status(400).json({ error: "question required" });
 
     if (DISABLE_EMBEDDINGS) {
-      // Fallback to non-embedding flow using schema summaries
       const cls = classifyQuestion(question, schemas);
       const target = cls.target === "unknown" ? "entities" : cls.target;
       const summary = target === "entities" ? entitiesSummary : dmsSummary;
       const plan = await sqlGen.generate(question, target, summary);
-      return res.json({ question, db_name: target, sql: plan.sql, params: [], notes: plan.explanation });
+      const fixedSql = stripInvalidEntityPropertyDeletedAt(plan.sql);
+      return res.json({ question, db_name: target, sql: fixedSql, params: [], notes: plan.explanation });
     }
 
     await vectorService.build("entities_prod_definition.txt", "dms_prod_definition.txt");
@@ -94,7 +76,8 @@ router.post("/sql", async (req: Request, res: Response) => {
     if (!plan?.sql) {
       return res.status(404).json({ error: "No SQL produced from context", question });
     }
-    return res.json({ question, db_name: dbGuess, sql: plan.sql, params: [], notes: plan.explanation });
+    const fixedSql = stripInvalidEntityPropertyDeletedAt(plan.sql);
+    return res.json({ question, db_name: dbGuess, sql: fixedSql, params: [], notes: plan.explanation });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || "failed" });
   }
@@ -113,7 +96,8 @@ router.post("/sql/run", async (req: Request, res: Response) => {
     const plan = await sqlGen.generate(question, target, summary);
 
     // Execute the generated SQL
-    const rows = await queryRaw(target as any, plan.sql);
+    const sqlFixed = stripInvalidEntityPropertyDeletedAt(plan.sql);
+    const rows = await queryRaw(target as any, sqlFixed);
 
     // Diagnostics for suspicious zeros / nulls on aggregates
     const diagnostics: any = {};
@@ -134,7 +118,7 @@ router.post("/sql/run", async (req: Request, res: Response) => {
     return res.json({
       question,
       db_name: target,
-      sql: plan.sql,
+      sql: sqlFixed,
       notes: plan.explanation,
       row_count: Array.isArray(rows) ? rows.length : 0,
       diagnostics,
@@ -212,7 +196,7 @@ router.get("/vector/query", async (req: Request, res: Response) => {
 });
 
 // Health check for vector service
-router.get("/vector-health", async (req: Request, res: Response) => {
+router.get("/vector-health", async (_req: Request, res: Response) => {
   try {
     const stats = vectorService.getStats();
     return res.json({ 
