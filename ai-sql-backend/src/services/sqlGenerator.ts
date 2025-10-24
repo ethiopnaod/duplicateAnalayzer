@@ -67,6 +67,9 @@ ${schemaSummary}
 - Use LOWER() for case-insensitive text match where needed.
 - Do not use SELECT *; specify columns.
 - If user implies a limit like 'top 5', add LIMIT ? or a safe LIMIT.
+- Use ONLY tables that exist in the provided schema for the selected target. Do NOT mix tables across databases.
+- If target is DMS, NEVER use Entities tables like entity, entity_property, people, address, bank, etc.
+- If target is Entities, NEVER use DMS tables like leads_tickets, leads_transactions, users (CRM), global_organisations, email_history, etc.
 `;
 
     const entitiesHints = `
@@ -89,10 +92,20 @@ ${schemaSummary}
 - Ticket code parsing: 'TK188089' => master_ticket_prefix = 'TK' AND ticket_number = '188089'.
 - Leads notes: there is NO leads_tickets_id; link via leads_transactions_id between leads_tickets and leads_notes.
 - Email history uses mail_content (not content), often filtered by leads_transactions_id and ordered by sent_date DESC.
-- Phones/emails:
-  - Use global_entity_contacts where contact_type IN ('phone','mobile','email') and contact_for in ('entity','people') as applicable.
-  - Join via global_entity_contacts.entity_type and .entity_id to the appropriate master (e.g., organisations/people mapping your query context).
-  - Apply soft delete on global_entity_contacts if present: (is_delete = 0 OR is_delete IS NULL) AND deleted_at IS NULL.
+- Do NOT reference Entities tables (entity, entity_property, people, address, etc.) when target is DMS.
+- Contact info in DMS:
+  - Use global_entity_contacts (GEC) where contact_type IN ('phone','mobile','email').
+  - Join GEC to the correct master by context:
+    - Organisation contacts: join global_entity_contacts.contact_for = 'organisation' (or 'entity' in some datasets) and global_entity_contacts.entity_id = global_organisations.id.
+    - Person/user contacts: join contact_for = 'people' or 'user' accordingly and entity_id to the appropriate table id (often users.id if referencing assigned users).
+  - Apply soft delete on global_entity_contacts when present: (is_delete = 0 OR is_delete IS NULL) AND deleted_at IS NULL.
+- Names in DMS:
+  - Organisation name: global_organisations.organisation_name (and trade_name if relevant).
+  - User/person name: users.first_name, users.last_name.
+- Common joins:
+  - leads_tickets t -> users u via t.assigned_to = u.id (for the current owner/assignee).
+  - leads_tickets t -> leads_transactions lt via t.leads_transactions_id = lt.id (deal/summary metrics live on lt, not t).
+  - leads_tickets t -> global_organisations go via t.global_organisation_id = go.id (ticket's organisation).
 `;
 
     const softDeleteReminder = target === "entities"

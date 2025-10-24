@@ -60,12 +60,12 @@ const MessageInput = ({
         onChange={onChange}
         onKeyPress={handleKeyPress}
         rows={rows}
-        className={`flex-1 px-4 py-3 border border-input rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`flex-1 px-3 py-2 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       />
       <Button 
         onClick={handleSend} 
         disabled={disabled || !value.trim() || isGenerating}
-        className="px-6 py-3 h-auto"
+        className="px-4 py-2 h-auto"
         type="button"
       >
         {isGenerating ? (
@@ -408,10 +408,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const exampleQueries = [
-    "Top 10 organisations by revenue in 2024",
-    "People created in June 2025",
-    "Show organisations with email domain 'example.com'",
-    "Count organisations by country"
+    // Entities DB
+    "Entities: phones for organisation 'Acme Ltd'",
+    "Entities: people named 'Jane Doe' with email",
+    "Entities: top 5 buys by face_value this year",
+    // DMS DB
+    "DMS: ticket TK188089 overview with last communication",
+    "DMS: last 5 notes for ticket TK218552",
+    "DMS: organisations with mobile contacts"
   ];
 
   const handleExampleClick = (query: string) => {
@@ -419,10 +423,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="py-4 max-w-4xl w-full mx-auto px-4">
+    <div className="py-2 max-w-4xl w-full mx-auto px-3">
       {/* Example Queries */}
-      <div className="mb-3">
-        <p className="text-xs text-muted-foreground mb-2">Try these examples:</p>
+      <div className="mb-2">
+        <p className="text-xs text-muted-foreground mb-1">Try these examples:</p>
         <div className="flex flex-wrap gap-2">
           {exampleQueries.map((query, index) => (
             <Button
@@ -445,9 +449,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
           disabled={isTyping}
           onChange={(ev: React.ChangeEvent<HTMLTextAreaElement>) => setInput(ev.target.value)}
           onSend={handleSend}
-          placeholder="Ask in plain English: e.g., 'Top 10 organisations by revenue in 2024' or 'People created in June 2025'. The assistant detects the DB (entities/dms) and generates safe, parameterized SQL."
-          className="bg-background border-2"
-          rows={3}
+          placeholder="Ask about Entities or DMS. Examples above. The assistant detects the right DB and returns safe SQL."
+          className="bg-background border"
+          rows={2}
           isGenerating={isGenerating}
         />
       </form>
@@ -749,14 +753,14 @@ Ask a question to get the SQL!`,
         {/* Chat Area */}
         <ScrollArea
           ref={scrollAreaRef}
-          className="flex-1 relative px-4 md:px-6 h-0"
+          className="flex-1 relative px-3 md:px-4 h-0"
         >
           <ScrollToBottomButton
             showScrollButton={showScrollButton}
             onClick={scrollToBottom}
           />
 
-          <div className="space-y-6 pb-6 pt-4">
+          <div className="space-y-4 pb-4 pt-3">
             {messages.map((message, index) => (
               <div key={message.id}>
                 <MessageItem
