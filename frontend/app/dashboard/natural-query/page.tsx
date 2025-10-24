@@ -127,7 +127,7 @@ const useAskAI = () => ({
           (notes ? `### Notes\n\n${notes}\n\n` : '') +
           `### Tips\n\n- ${suggestions.join('\n- ')}`;
 
-        return { data: { markdown, sql } } as any;
+        return { data: { markdown, sql, question: query, copyableQuestion: query, copyableAnswer: markdown } } as any;
       }
 
       // Otherwise, pass through legacy shape
@@ -199,14 +199,23 @@ type Message = {
   id: string
   type: "user" | "ai"
   content: string
+  meta?: {
+    question?: string
+    copyableQuestion?: string
+    copyableAnswer?: string
+    sql?: string
+  }
 }
 
 // === API Response Type (Updated) ===
 type QueryResponse = {
-  message: string
-  data: {
-    markdown: string // ← Only this is returned now
+  message?: string
+  data?: {
+    markdown: string
     sql?: string
+    question?: string
+    copyableQuestion?: string
+    copyableAnswer?: string
   }
 }
 
@@ -225,9 +234,10 @@ function getServiceErrMsg(error: unknown, message?: string) {
 interface MessageItemProps {
   message: Message
   index: number
+  onAskAgain?: (q: string) => void
 }
 
-const MessageItem: React.FC<MessageItemProps> = ({ message, index }) => {
+const MessageItem: React.FC<MessageItemProps> = ({ message, index, onAskAgain }) => {
   const isUser = message.type === "user"
 
   return (
@@ -260,6 +270,59 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, index }) => {
           <CustomMarkdown content={message.content || "No results found."} />
         )}
       </div>
+
+      {/* Per-message controls for AI messages */}
+      {!isUser && (
+        <div className="flex gap-2 mt-1">
+          {message.meta?.sql && (
+            <Button
+              size={"sm"}
+              variant={"default"}
+              onClick={async () => {
+                try { await navigator.clipboard.writeText(message.meta!.sql!); toast.success('SQL copied'); } catch { toast.error('Failed to copy'); }
+              }}
+            >
+              Copy SQL
+            </Button>
+          )}
+          {(message.meta?.copyableQuestion || message.meta?.question) && (
+            <Button
+              size={"sm"}
+              variant={"outline"}
+              onClick={async () => {
+                const q = message.meta?.copyableQuestion || message.meta?.question || ""
+                try { await navigator.clipboard.writeText(q); toast.success('Question copied'); } catch { toast.error('Failed to copy'); }
+              }}
+            >
+              Copy Question
+            </Button>
+          )}
+          {(message.meta?.copyableAnswer || message.content) && (
+            <Button
+              size={"sm"}
+              variant={"outline"}
+              onClick={async () => {
+                const a = message.meta?.copyableAnswer || message.content || ""
+                try { await navigator.clipboard.writeText(a); toast.success('Answer copied'); } catch { toast.error('Failed to copy'); }
+              }}
+            >
+              Copy Answer
+            </Button>
+          )}
+          {(message.meta?.question || message.meta?.copyableQuestion) && (
+            <Button
+              size={"sm"}
+              variant={"secondary"}
+              onClick={async () => {
+                const q = message.meta?.question || message.meta?.copyableQuestion || ""
+                if (q && onAskAgain) { await onAskAgain(q) }
+              }}
+            >
+              Ask Again
+            </Button>
+          )}
+        </div>
+      )}
 
       {isUser && (
         <div className="flex-shrink-0 mt-1">
@@ -396,6 +459,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 export default function NaturalLanguageQueryChat() {
   const [input, setInput] = useState("")
   const [lastSql, setLastSql] = useState("")
+  const [lastResponse, setLastResponse] = useState<{ question?: string; copyableQuestion?: string; copyableAnswer?: string; markdown?: string; sql?: string } | null>(null)
   const [backendOk, setBackendOk] = useState<boolean | null>(null)
   const [vectorServiceOk, setVectorServiceOk] = useState<boolean | null>(null)
   const [messages, setMessages] = useState<Message[]>([
@@ -530,17 +594,64 @@ Ask a question to get the SQL!`,
 
     try {
       setIsGenerating(true)
-      const data = await askAIMutation.askAI(userMessage)
+      const data: QueryResponse = await askAIMutation.askAI(userMessage)
 
       // Add AI response with Markdown content
+      const aiContent = (data?.data?.markdown && data.data.markdown.trim().length > 0)
+        ? data.data.markdown
+        : (data as any)?.markdown && (data as any).markdown.trim().length > 0
+          ? (data as any).markdown
+          : "No results found."
+
+      const respData = data?.data
+      let meta: Message["meta"] = undefined
+      if (respData) {
+        setLastSql(respData.sql || "")
+        meta = {
+          question: respData.question || userMessage,
+          copyableQuestion: respData.copyableQuestion || respData.question || userMessage,
+          copyableAnswer: respData.copyableAnswer || respData.markdown || aiContent,
+          sql: respData.sql,
+        }
+      } else {
+        const legacySql = (data as any)?.data?.sql || (data as any)?.sql || ""
+        const legacyMarkdown = (data as any)?.data?.markdown || (data as any)?.markdown || aiContent
+        setLastSql(legacySql)
+        meta = {
+          question: userMessage,
+          copyableQuestion: userMessage,
+          copyableAnswer: legacyMarkdown,
+          sql: legacySql,
+        }
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           type: "ai",
-          content: (data?.data?.markdown && data.data.markdown.trim().length > 0) ? data.data.markdown : (data?.markdown && data.markdown.trim().length > 0) ? data.markdown : "No results found.",
+          content: aiContent,
+          meta,
         },
       ])
+
+      // Track last response details for copy/re-ask buttons
+      if (respData) {
+        setLastSql(respData.sql || "")
+        setLastResponse({
+          question: respData.question,
+          copyableQuestion: respData.copyableQuestion || respData.question,
+          copyableAnswer: respData.copyableAnswer || respData.markdown || aiContent,
+          markdown: respData.markdown,
+          sql: respData.sql,
+        })
+      } else {
+        // Legacy path from useAskAI fallback shape
+        const legacySql = (data as any)?.data?.sql || (data as any)?.sql || ""
+        const legacyMarkdown = (data as any)?.data?.markdown || (data as any)?.markdown || ""
+        setLastSql(legacySql)
+        setLastResponse({ markdown: legacyMarkdown, sql: legacySql })
+      }
     } catch (err: unknown) {
       let errMsg = "No results found"
       if (err instanceof Error) {
@@ -651,30 +762,8 @@ Ask a question to get the SQL!`,
                 <MessageItem
                   message={message}
                   index={index}
+                  onAskAgain={askAI}
                 />
-                {messages.length === index + 1 && message.type === "ai" && (
-                  <div className="ml-[4rem] mt-1 flex items-center gap-2">
-                    {retryConfig.showRetry && (
-                      <Button size={"sm"} variant={"outline"} onClick={async () => {
-                        await askAI(retryConfig.msg)
-                      }}>
-                        <RefreshCwIcon className="h-4 w-4" />
-                        <span className="ml-1">Retry</span>
-                      </Button>
-                    )}
-                    {lastSql && (
-                      <Button
-                        size={"sm"}
-                        variant={"default"}
-                        onClick={async () => {
-                          try { await navigator.clipboard.writeText(lastSql); toast.success('SQL copied'); } catch { toast.error('Failed to copy'); }
-                        }}
-                      >
-                        Copy SQL
-                      </Button>
-                    )}
-                  </div>
-                )}
               </div>
             ))}
 

@@ -66,8 +66,11 @@ ${schemaSummary}
 # Entities-Specific Guidance (CRITICAL)
 - Soft delete: prefer (entity.is_deleted = 0 OR entity.is_deleted IS NULL).
 - Only add deleted_at IS NULL for tables that actually have a deleted_at column; do NOT add it on entity_property.
-- Phone numbers and emails live in entity_property (property_id like 'phone', 'mobile', 'phone_number', 'email').
-  - Join entity_property ON entity_id; do NOT join phone by entity_id (that column does not exist in phone).
+- Phones/emails:
+  - Prefer entity.computed_phones and entity.computed_emails when listing contact info.
+  - Otherwise use entity_property with property_id IN ('phone','mobile','phone_number','telephone','email','work_email','personal_email').
+  - Join entity_property ON entity_property.entity_id = entity.entity_id. Do NOT join the phone table (it has no entity_id link).
+  - For numeric matching, normalize by removing spaces/dashes using REPLACE before LIKE/REGEXP.
 - People: if matching by person name, use entity.name or people.first_name/last_name joined to entity.
 - Buy table: typical numeric fields include face_value, purchased; dates like issued. Use date ranges for performance.
 `;
@@ -78,6 +81,10 @@ ${schemaSummary}
 - Ticket code parsing: 'TK188089' => master_ticket_prefix = 'TK' AND ticket_number = '188089'.
 - Leads notes: there is NO leads_tickets_id; link via leads_transactions_id between leads_tickets and leads_notes.
 - Email history uses mail_content (not content), often filtered by leads_transactions_id and ordered by sent_date DESC.
+- Phones/emails:
+  - Use global_entity_contacts where contact_type IN ('phone','mobile','email') and contact_for in ('entity','people') as applicable.
+  - Join via global_entity_contacts.entity_type and .entity_id to the appropriate master (e.g., organisations/people mapping your query context).
+  - Apply soft delete on global_entity_contacts if present: (is_delete = 0 OR is_delete IS NULL) AND deleted_at IS NULL.
 `;
         const softDeleteReminder = target === "entities"
             ? "Soft delete: (entity.is_deleted = 0 OR entity.is_deleted IS NULL); add deleted_at IS NULL where present."

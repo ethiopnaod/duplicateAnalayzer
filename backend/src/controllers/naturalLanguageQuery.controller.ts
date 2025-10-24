@@ -124,6 +124,10 @@ export const naturalLanguageQueryController = expressAsyncWrapper(
                     success: true,
                     data: {
                         markdown: markdownSummary,
+                        question: cleanedQuestion,
+                        copyableQuestion: cleanedQuestion,
+                        copyableAnswer: markdownSummary,
+                        sql: sqlToRun,
                     },
                 });
             } catch (error: any) {
@@ -175,6 +179,10 @@ export const naturalLanguageQueryController = expressAsyncWrapper(
             success: false,
             data: {
                 markdown: fallbackMarkdown,
+                question: cleanedQuestion,
+                copyableQuestion: cleanedQuestion,
+                copyableAnswer: fallbackMarkdown,
+                sql: finalSql,
             },
         });
     }
